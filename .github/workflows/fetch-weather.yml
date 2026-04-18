@@ -28,12 +28,12 @@ jobs:
 
       - name: Commit and push if changed
         run: |
-          if git diff --quiet -- weather.json; then
-            echo "No changes to weather.json"
-            exit 0
-          fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add weather.json
+          if git diff --cached --quiet; then
+            echo "No changes to weather.json"
+            exit 0
+          fi
           git commit -m "weather: append sample"
           git push
