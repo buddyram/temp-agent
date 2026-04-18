@@ -17,7 +17,9 @@ def now():
 def load():
     if os.path.exists(OUT):
         with open(OUT) as f:
-            return json.load(f)
+            state = json.load(f)
+        if isinstance(state, dict) and "history" in state and "start_time" in state:
+            return state
     return {"start_time": now(), "history": []}
 
 
