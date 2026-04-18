@@ -48,6 +48,18 @@
         "weathercode": 3
       },
       "timestamp": "2026-04-18T22:40:11.294852+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-04-18T23:30",
+        "interval": 900,
+        "temperature": 23.5,
+        "windspeed": 17.1,
+        "winddirection": 314,
+        "is_day": 1,
+        "weathercode": 3
+      },
+      "timestamp": "2026-04-18T23:40:16.251247+00:00"
     }
   ]
 }
