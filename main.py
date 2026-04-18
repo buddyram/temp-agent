@@ -8,6 +8,7 @@ import requests
 URL = "https://api.open-meteo.com/v1/forecast?latitude=37.5&longitude=-122.0&current_weather=true"
 OUT = "weather.json"
 INTERVAL = 3600
+ITERATIONS = 24
 
 
 def now():
@@ -36,9 +37,10 @@ def tick(state):
 
 def main():
     state = load()
-    while True:
+    for i in range(ITERATIONS):
         tick(state)
-        time.sleep(INTERVAL)
+        if i < ITERATIONS - 1:
+            time.sleep(INTERVAL)
 
 
 if __name__ == "__main__":
