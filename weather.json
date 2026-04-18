@@ -1,0 +1,17 @@
+{
+  "start_time": "2026-04-18T19:08:53.129974+00:00",
+  "history": [
+    {
+      "data": {
+        "time": "2026-04-18T19:00",
+        "interval": 900,
+        "temperature": 20.3,
+        "windspeed": 5.2,
+        "winddirection": 282,
+        "is_day": 1,
+        "weathercode": 2
+      },
+      "timestamp": "2026-04-18T19:08:53.792807+00:00"
+    }
+  ]
+}
