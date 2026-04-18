@@ -1,6 +1,5 @@
 import json
 import os
-import time
 from datetime import datetime, timedelta, timezone
 
 import requests
@@ -40,9 +39,8 @@ def main():
     start = datetime.fromisoformat(state["start_time"])
     for k in range(len(state["history"]), ITERATIONS):
         target = start + timedelta(seconds=k * INTERVAL)
-        delay = (target - datetime.now(timezone.utc)).total_seconds()
-        if delay > 0:
-            time.sleep(delay)
+        if target > datetime.now(timezone.utc):
+            break
         tick(state)
 
 
