@@ -180,6 +180,18 @@
         "weathercode": 2
       },
       "timestamp": "2026-04-19T09:52:07.460750+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-04-19T10:30",
+        "interval": 900,
+        "temperature": 10.6,
+        "windspeed": 7.4,
+        "winddirection": 346,
+        "is_day": 0,
+        "weathercode": 2
+      },
+      "timestamp": "2026-04-19T10:44:06.409347+00:00"
     }
   ]
 }
