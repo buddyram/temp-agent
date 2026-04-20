@@ -5,9 +5,15 @@ import ssl
 from datetime import datetime, timedelta, timezone
 from email.message import EmailMessage
 
+import matplotlib
+
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+import pandas as pd
 import requests
 
 OUT = "outputs/weather.json"
+PLOT = "outputs/image.png"
 ENV_FILE = ".env.local"
 INTERVAL = 1800
 ITERATIONS = 48
@@ -42,6 +48,28 @@ def save(state):
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
     with open(OUT, "w") as f:
         json.dump(state, f, indent=2)
+
+
+def plot(state):
+    rows = [
+        {"timestamp": e["timestamp"], "temperature": e["data"].get("temperature")}
+        for e in state["history"]
+        if isinstance(e["data"].get("temperature"), (int, float))
+    ]
+    if not rows:
+        return
+    df = pd.DataFrame(rows)
+    df["timestamp"] = pd.to_datetime(df["timestamp"])
+    os.makedirs(os.path.dirname(PLOT), exist_ok=True)
+    fig, ax = plt.subplots(figsize=(10, 5))
+    df.plot(x="timestamp", y="temperature", ax=ax, marker="o", legend=False)
+    ax.set_xlabel("time (UTC)")
+    ax.set_ylabel("temperature (°C)")
+    ax.set_title("Temperature vs time")
+    fig.autofmt_xdate()
+    fig.tight_layout()
+    fig.savefig(PLOT)
+    plt.close(fig)
 
 
 def update_extremes(state):
@@ -101,14 +129,15 @@ def main():
 
     if os.environ.get("FORCE") == "1":
         tick(state, url)
-        return
+    else:
+        start = datetime.fromisoformat(state["start_time"])
+        for k in range(len(state["history"]), ITERATIONS):
+            target = start + timedelta(seconds=k * INTERVAL)
+            if target > datetime.now(timezone.utc):
+                break
+            tick(state, url)
 
-    start = datetime.fromisoformat(state["start_time"])
-    for k in range(len(state["history"]), ITERATIONS):
-        target = start + timedelta(seconds=k * INTERVAL)
-        if target > datetime.now(timezone.utc):
-            break
-        tick(state, url)
+    plot(state)
 
 
 if __name__ == "__main__":

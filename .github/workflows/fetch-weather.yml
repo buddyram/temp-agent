@@ -27,7 +27,7 @@ jobs:
         with:
           python-version: '3.11'
 
-      - run: pip install requests
+      - run: pip install requests pandas matplotlib
 
       - run: python main.py
         env:
@@ -41,9 +41,9 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add outputs/weather.json
+          git add outputs/weather.json outputs/image.png
           if git diff --cached --quiet; then
-            echo "No changes to outputs/weather.json"
+            echo "No changes to outputs"
             exit 0
           fi
           git commit -m "weather: append sample"
