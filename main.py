@@ -93,7 +93,7 @@ def send_record_email(kind, new_temp, prev_temp):
     msg.set_content(f"New {kind} record: {new_temp}°C (previous {kind}: {prev_temp}°C)")
     try:
         ctx = ssl.create_default_context()
-        with smtplib.SMTP_SSL("smtp.mail.me.com", 465, context=ctx) as s:
+        with smtplib.SMTP_SSL("smtp.mail.me.com", 465, context=ctx, timeout=10) as s:
             s.login(addr, pw)
             s.send_message(msg)
         print(f"Record email sent ({kind}): {new_temp}°C vs {prev_temp}°C")
