@@ -18,14 +18,16 @@ jobs:
 
       - name: Archive and delete
         run: |
-          if [ ! -f weather.json ]; then
-            echo "weather.json not present; nothing to archive"
+          if [ ! -f outputs/weather.json ]; then
+            echo "outputs/weather.json not present; nothing to archive"
             exit 0
           fi
           ts=$(date -u +%Y%m%dT%H%M%SZ)
-          archive="weather${ts}.json"
-          git mv weather.json "$archive"
+          mkdir -p outputs/archives
+          archive="outputs/archives/weather${ts}.json"
+          git mv outputs/weather.json "$archive"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "archive weather.json -> ${archive}"
+          git add outputs/archives
+          git commit -m "archive outputs/weather.json -> ${archive}"
           git push

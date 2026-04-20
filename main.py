@@ -7,7 +7,7 @@ from email.message import EmailMessage
 
 import requests
 
-OUT = "weather.json"
+OUT = "outputs/weather.json"
 ENV_FILE = ".env.local"
 INTERVAL = 1800
 ITERATIONS = 48
@@ -39,6 +39,7 @@ def load():
 
 
 def save(state):
+    os.makedirs(os.path.dirname(OUT), exist_ok=True)
     with open(OUT, "w") as f:
         json.dump(state, f, indent=2)
 
