@@ -61,6 +61,9 @@ def main():
     url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current_weather=true"
 
     state = load()
+    update_max(state)
+    save(state)
+
     start = datetime.fromisoformat(state["start_time"])
     for k in range(len(state["history"]), ITERATIONS):
         target = start + timedelta(seconds=k * INTERVAL)
