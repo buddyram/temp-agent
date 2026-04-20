@@ -1,0 +1,19 @@
+{
+  "start_time": "2026-04-20T06:24:29.769792+00:00",
+  "history": [
+    {
+      "data": {
+        "time": "2026-04-20T06:15",
+        "interval": 900,
+        "temperature": 12.5,
+        "windspeed": 13.7,
+        "winddirection": 178,
+        "is_day": 0,
+        "weathercode": 3
+      },
+      "timestamp": "2026-04-20T06:24:30.216364+00:00"
+    }
+  ],
+  "max_temperature": 12.5,
+  "min_temperature": 12.5
+}
