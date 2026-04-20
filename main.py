@@ -16,7 +16,6 @@ OUT = "outputs/weather.json"
 PLOT = "outputs/image.png"
 ENV_FILE = ".env.local"
 INTERVAL = 1800
-ITERATIONS = 48
 
 
 def load_env(path=ENV_FILE):
@@ -136,11 +135,13 @@ def main():
         tick(state, url)
     else:
         start = datetime.fromisoformat(state["start_time"])
-        for k in range(len(state["history"]), ITERATIONS):
+        k = len(state["history"])
+        while True:
             target = start + timedelta(seconds=k * INTERVAL)
             if target > datetime.now(timezone.utc):
                 break
             tick(state, url)
+            k += 1
 
     plot(state)
 
