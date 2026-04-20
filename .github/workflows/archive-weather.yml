@@ -23,11 +23,14 @@ jobs:
             exit 0
           fi
           ts=$(date -u +%Y%m%dT%H%M%SZ)
-          mkdir -p outputs/archives
-          archive="outputs/archives/weather${ts}.json"
-          git mv outputs/weather.json "$archive"
+          dest="outputs/archives/weather${ts}"
+          mkdir -p "$dest"
+          git mv outputs/weather.json "$dest/weather.json"
+          if [ -f outputs/image.png ]; then
+            git mv outputs/image.png "$dest/image.png"
+          fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add outputs/archives
-          git commit -m "archive outputs/weather.json -> ${archive}"
+          git add "$dest"
+          git commit -m "archive outputs -> ${dest}"
           git push
