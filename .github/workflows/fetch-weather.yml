@@ -25,6 +25,9 @@ jobs:
       - run: pip install requests
 
       - run: python main.py
+        env:
+          LATITUDE: ${{ secrets.LATITUDE }}
+          LONGITUDE: ${{ secrets.LONGITUDE }}
 
       - name: Commit and push if changed
         run: |

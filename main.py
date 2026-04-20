@@ -4,10 +4,22 @@ from datetime import datetime, timedelta, timezone
 
 import requests
 
-URL = "https://api.open-meteo.com/v1/forecast?latitude=37.5&longitude=-122.0&current_weather=true"
 OUT = "weather.json"
+ENV_FILE = ".env"
 INTERVAL = 3600
 ITERATIONS = 24
+
+
+def load_env(path=ENV_FILE):
+    if not os.path.exists(path):
+        return
+    with open(path) as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            key, value = line.split("=", 1)
+            os.environ.setdefault(key.strip(), value.strip())
 
 
 def now():
@@ -28,20 +40,33 @@ def save(state):
         json.dump(state, f, indent=2)
 
 
-def tick(state):
-    data = requests.get(URL).json()
+def update_max(state):
+    temps = [e["data"].get("temperature") for e in state["history"]]
+    temps = [t for t in temps if isinstance(t, (int, float))]
+    if temps:
+        state["max_temperature"] = max(temps)
+
+
+def tick(state, url):
+    data = requests.get(url).json()
     state["history"].append({"data": data.get("current_weather", data), "timestamp": now()})
+    update_max(state)
     save(state)
 
 
 def main():
+    load_env()
+    lat = os.environ["LATITUDE"]
+    lon = os.environ["LONGITUDE"]
+    url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current_weather=true"
+
     state = load()
     start = datetime.fromisoformat(state["start_time"])
     for k in range(len(state["history"]), ITERATIONS):
         target = start + timedelta(seconds=k * INTERVAL)
         if target > datetime.now(timezone.utc):
             break
-        tick(state)
+        tick(state, url)
 
 
 if __name__ == "__main__":
