@@ -6,8 +6,8 @@ import requests
 
 OUT = "weather.json"
 ENV_FILE = ".env"
-INTERVAL = 3600
-ITERATIONS = 24
+INTERVAL = 1800
+ITERATIONS = 48
 
 
 def load_env(path=ENV_FILE):
