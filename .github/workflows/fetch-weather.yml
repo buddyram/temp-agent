@@ -4,6 +4,11 @@ on:
   schedule:
     - cron: '5,35 * * * *'
   workflow_dispatch:
+    inputs:
+      force:
+        description: 'Force a tick regardless of schedule'
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -30,6 +35,7 @@ jobs:
           LONGITUDE: ${{ secrets.LONGITUDE }}
           EMAIL_ADDRESS: ${{ secrets.EMAIL_ADDRESS }}
           EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
+          FORCE: ${{ inputs.force && '1' || '0' }}
 
       - name: Commit and push if changed
         run: |

@@ -93,6 +93,10 @@ def main():
     update_max(state)
     save(state)
 
+    if os.environ.get("FORCE") == "1":
+        tick(state, url)
+        return
+
     start = datetime.fromisoformat(state["start_time"])
     for k in range(len(state["history"]), ITERATIONS):
         target = start + timedelta(seconds=k * INTERVAL)
