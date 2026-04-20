@@ -1,6 +1,9 @@
 import json
 import os
+import smtplib
+import ssl
 from datetime import datetime, timedelta, timezone
+from email.message import EmailMessage
 
 import requests
 
@@ -47,10 +50,36 @@ def update_max(state):
         state["max_temperature"] = max(temps)
 
 
+def send_record_email(new_temp, prev_max):
+    addr = os.environ.get("EMAIL_ADDRESS")
+    pw = os.environ.get("EMAIL_PASSWORD")
+    if not addr or not pw:
+        print("Email creds missing, skipping notification")
+        return
+    msg = EmailMessage()
+    msg["Subject"] = f"New max temperature record: {new_temp}°C"
+    msg["From"] = addr
+    msg["To"] = addr
+    msg.set_content(f"New record: {new_temp}°C (previous max: {prev_max}°C)")
+    try:
+        ctx = ssl.create_default_context()
+        with smtplib.SMTP_SSL("smtp.mail.me.com", 465, context=ctx) as s:
+            s.login(addr, pw)
+            s.send_message(msg)
+        print(f"Record email sent: {new_temp}°C > {prev_max}°C")
+    except Exception as e:
+        print(f"Failed to send email: {e}")
+
+
 def tick(state, url):
     data = requests.get(url).json()
-    state["history"].append({"data": data.get("current_weather", data), "timestamp": now()})
+    current = data.get("current_weather", data)
+    temp = current.get("temperature")
+    prev_max = state.get("max_temperature")
+    state["history"].append({"data": current, "timestamp": now()})
     update_max(state)
+    if isinstance(temp, (int, float)) and isinstance(prev_max, (int, float)) and temp > prev_max:
+        send_record_email(temp, prev_max)
     save(state)
 
 
