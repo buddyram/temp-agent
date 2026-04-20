@@ -102,7 +102,11 @@ def send_record_email(kind, new_temp, prev_temp):
 
 
 def tick(state, url):
-    data = requests.get(url).json()
+    try:
+        data = requests.get(url, timeout=15).json()
+    except requests.RequestException as e:
+        print(f"Fetch failed, skipping tick: {e}")
+        return False
     current = data.get("current_weather", data)
     temp = current.get("temperature")
     prev_max = state.get("max_temperature")
@@ -115,6 +119,7 @@ def tick(state, url):
         if isinstance(prev_min, (int, float)) and temp < prev_min:
             send_record_email("min", temp, prev_min)
     save(state)
+    return True
 
 
 def main():
