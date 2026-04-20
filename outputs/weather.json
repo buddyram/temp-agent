@@ -12,8 +12,56 @@
         "weathercode": 3
       },
       "timestamp": "2026-04-20T06:24:30.216364+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-04-20T08:30",
+        "interval": 900,
+        "temperature": 11.6,
+        "windspeed": 14.8,
+        "winddirection": 184,
+        "is_day": 0,
+        "weathercode": 0
+      },
+      "timestamp": "2026-04-20T08:36:30.754916+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-04-20T08:30",
+        "interval": 900,
+        "temperature": 11.6,
+        "windspeed": 14.8,
+        "winddirection": 184,
+        "is_day": 0,
+        "weathercode": 0
+      },
+      "timestamp": "2026-04-20T08:36:32.341863+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-04-20T08:30",
+        "interval": 900,
+        "temperature": 11.6,
+        "windspeed": 14.8,
+        "winddirection": 184,
+        "is_day": 0,
+        "weathercode": 0
+      },
+      "timestamp": "2026-04-20T08:36:32.737475+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-04-20T08:30",
+        "interval": 900,
+        "temperature": 11.6,
+        "windspeed": 14.8,
+        "winddirection": 184,
+        "is_day": 0,
+        "weathercode": 0
+      },
+      "timestamp": "2026-04-20T08:36:33.161874+00:00"
     }
   ],
   "max_temperature": 12.5,
-  "min_temperature": 12.5
+  "min_temperature": 11.6
 }
