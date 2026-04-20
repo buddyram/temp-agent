@@ -1,0 +1,31 @@
+name: archive-weather
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: weather-writes
+  cancel-in-progress: false
+
+jobs:
+  archive:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Archive and delete
+        run: |
+          if [ ! -f weather.json ]; then
+            echo "weather.json not present; nothing to archive"
+            exit 0
+          fi
+          ts=$(date -u +%Y%m%dT%H%M%SZ)
+          archive="weather${ts}.json"
+          git mv weather.json "$archive"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "archive weather.json -> ${archive}"
+          git push
