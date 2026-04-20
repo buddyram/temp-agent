@@ -8,7 +8,7 @@ from email.message import EmailMessage
 import requests
 
 OUT = "weather.json"
-ENV_FILE = ".env"
+ENV_FILE = ".env.local"
 INTERVAL = 1800
 ITERATIONS = 48
 
