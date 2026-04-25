@@ -3168,6 +3168,18 @@
         "weathercode": 3
       },
       "timestamp": "2026-04-25T18:00:27.586338+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-04-25T18:30",
+        "interval": 900,
+        "temperature": 14.0,
+        "windspeed": 5.4,
+        "winddirection": 228,
+        "is_day": 1,
+        "weathercode": 3
+      },
+      "timestamp": "2026-04-25T18:30:27.501011+00:00"
     }
   ],
   "max_temperature": 21.2,
