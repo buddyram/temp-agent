@@ -79,17 +79,61 @@ def update_extremes(state):
         state["min_temperature"] = min(temps)
 
 
-def send_record_email(kind, new_temp, prev_temp):
+def c_to_f(c):
+    return c * 9 / 5 + 32
+
+
+def send_record_email(kind, new_temp, prev_temp, current, state):
     addr = os.environ.get("EMAIL_ADDRESS")
     pw = os.environ.get("EMAIL_PASSWORD")
     if not addr or not pw:
         print("Email creds missing, skipping notification")
         return
+    new_f = c_to_f(new_temp)
+    prev_f = c_to_f(prev_temp)
+    delta_c = new_temp - prev_temp
+    delta_f = new_f - prev_f
+    other_kind = "min" if kind == "max" else "max"
+    other_temp = state.get(f"{other_kind}_temperature")
+    other_line = (
+        f"Current {other_kind} on record: {other_temp}°C ({c_to_f(other_temp):.1f}°F)"
+        if isinstance(other_temp, (int, float))
+        else f"Current {other_kind} on record: n/a"
+    )
+    samples = len(state.get("history", []))
+    start_time = state.get("start_time", "unknown")
+    arrow = "🔥" if kind == "max" else "🥶"
+    wind = current.get("windspeed")
+    wdir = current.get("winddirection")
+    wcode = current.get("weathercode")
+    obs_time = current.get("time", "unknown")
+    lines = [
+        f"Hello,",
+        "",
+        f"{arrow} A new {kind.upper()} temperature record has been set!",
+        "",
+        f"  New {kind}: {new_temp}°C ({new_f:.1f}°F)",
+        f"  Previous {kind}: {prev_temp}°C ({prev_f:.1f}°F)",
+        f"  Change: {delta_c:+.2f}°C ({delta_f:+.2f}°F)",
+        "",
+        "Current conditions at observation:",
+        f"  Observation time: {obs_time}",
+        f"  Wind speed: {wind} km/h" if wind is not None else "  Wind speed: n/a",
+        f"  Wind direction: {wdir}°" if wdir is not None else "  Wind direction: n/a",
+        f"  Weather code: {wcode}" if wcode is not None else "  Weather code: n/a",
+        "",
+        "Dataset stats:",
+        f"  {other_line}",
+        f"  Total samples recorded: {samples}",
+        f"  Tracking since: {start_time}",
+        "",
+        "— temp-agent 🌡️",
+    ]
     msg = EmailMessage()
-    msg["Subject"] = f"New {kind} temperature record: {new_temp}°C"
+    msg["Subject"] = f"{arrow} New {kind} record: {new_temp}°C ({new_f:.1f}°F)"
     msg["From"] = addr
     msg["To"] = addr
-    msg.set_content(f"New {kind} record: {new_temp}°C (previous {kind}: {prev_temp}°C)")
+    msg.set_content("\n".join(lines))
     try:
         ctx = ssl.create_default_context()
         with smtplib.SMTP_SSL("smtp.mail.me.com", 465, context=ctx, timeout=10) as s:
@@ -114,9 +158,9 @@ def tick(state, url):
     update_extremes(state)
     if isinstance(temp, (int, float)):
         if isinstance(prev_max, (int, float)) and temp > prev_max:
-            send_record_email("max", temp, prev_max)
+            send_record_email("max", temp, prev_max, current, state)
         if isinstance(prev_min, (int, float)) and temp < prev_min:
-            send_record_email("min", temp, prev_min)
+            send_record_email("min", temp, prev_min, current, state)
     save(state)
     return True
 
