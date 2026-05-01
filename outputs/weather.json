@@ -6888,6 +6888,156 @@
         "cloud_cover": 100
       },
       "timestamp": "2026-05-01T21:33:36.664700+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-05-01T22:00",
+        "interval": 900,
+        "temperature": 18.8,
+        "windspeed": 13.7,
+        "winddirection": 330,
+        "weathercode": 3,
+        "is_day": 1,
+        "pressure": 1013.1,
+        "humidity": 70,
+        "cloud_cover": 100
+      },
+      "timestamp": "2026-05-01T22:01:29.380230+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-05-01T22:00",
+        "interval": 900,
+        "temperature": 18.8,
+        "windspeed": 13.7,
+        "winddirection": 330,
+        "weathercode": 3,
+        "is_day": 1,
+        "pressure": 1013.1,
+        "humidity": 70,
+        "cloud_cover": 100
+      },
+      "timestamp": "2026-05-01T22:01:29.850240+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-05-01T22:00",
+        "interval": 900,
+        "temperature": 18.8,
+        "windspeed": 13.7,
+        "winddirection": 330,
+        "weathercode": 3,
+        "is_day": 1,
+        "pressure": 1013.1,
+        "humidity": 70,
+        "cloud_cover": 100
+      },
+      "timestamp": "2026-05-01T22:01:30.313867+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-05-01T22:00",
+        "interval": 900,
+        "temperature": 18.8,
+        "windspeed": 13.7,
+        "winddirection": 330,
+        "weathercode": 3,
+        "is_day": 1,
+        "pressure": 1013.1,
+        "humidity": 70,
+        "cloud_cover": 100
+      },
+      "timestamp": "2026-05-01T22:01:30.770700+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-05-01T22:00",
+        "interval": 900,
+        "temperature": 18.8,
+        "windspeed": 13.7,
+        "winddirection": 330,
+        "weathercode": 3,
+        "is_day": 1,
+        "pressure": 1013.1,
+        "humidity": 70,
+        "cloud_cover": 100
+      },
+      "timestamp": "2026-05-01T22:01:31.250001+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-05-01T22:00",
+        "interval": 900,
+        "temperature": 18.8,
+        "windspeed": 13.7,
+        "winddirection": 330,
+        "weathercode": 3,
+        "is_day": 1,
+        "pressure": 1013.1,
+        "humidity": 70,
+        "cloud_cover": 100
+      },
+      "timestamp": "2026-05-01T22:01:31.730750+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-05-01T22:00",
+        "interval": 900,
+        "temperature": 18.8,
+        "windspeed": 13.7,
+        "winddirection": 330,
+        "weathercode": 3,
+        "is_day": 1,
+        "pressure": 1013.1,
+        "humidity": 70,
+        "cloud_cover": 100
+      },
+      "timestamp": "2026-05-01T22:01:32.190301+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-05-01T22:00",
+        "interval": 900,
+        "temperature": 18.8,
+        "windspeed": 13.7,
+        "winddirection": 330,
+        "weathercode": 3,
+        "is_day": 1,
+        "pressure": 1013.1,
+        "humidity": 70,
+        "cloud_cover": 100
+      },
+      "timestamp": "2026-05-01T22:01:32.665502+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-05-01T22:00",
+        "interval": 900,
+        "temperature": 18.8,
+        "windspeed": 13.7,
+        "winddirection": 330,
+        "weathercode": 3,
+        "is_day": 1,
+        "pressure": 1013.1,
+        "humidity": 70,
+        "cloud_cover": 100
+      },
+      "timestamp": "2026-05-01T22:01:33.133804+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-05-01T22:00",
+        "interval": 900,
+        "temperature": 18.8,
+        "windspeed": 13.7,
+        "winddirection": 330,
+        "weathercode": 3,
+        "is_day": 1,
+        "pressure": 1013.1,
+        "humidity": 70,
+        "cloud_cover": 100
+      },
+      "timestamp": "2026-05-01T22:01:33.617700+00:00"
     }
   ],
   "max_temperature": 21.2,
