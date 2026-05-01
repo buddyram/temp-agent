@@ -6324,6 +6324,18 @@
         "weathercode": 1
       },
       "timestamp": "2026-05-01T05:30:29.762114+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-05-01T06:00",
+        "interval": 900,
+        "temperature": 12.0,
+        "windspeed": 10.7,
+        "winddirection": 348,
+        "is_day": 0,
+        "weathercode": 2
+      },
+      "timestamp": "2026-05-01T06:00:30.842565+00:00"
     }
   ],
   "max_temperature": 21.6,
