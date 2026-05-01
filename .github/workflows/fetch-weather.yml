@@ -37,11 +37,15 @@ jobs:
           EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
           FORCE: ${{ inputs.force && '1' || '0' }}
 
+      - name: Regenerate forecast
+        run: python ml/predict.py --live-only
+        continue-on-error: true
+
       - name: Commit and push if changed
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add outputs/weather.json outputs/image.png
+          git add outputs/weather.json outputs/image.png outputs/forecast.json
           if git diff --cached --quiet; then
             echo "No changes to outputs"
             exit 0

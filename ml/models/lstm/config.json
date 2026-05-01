@@ -1,0 +1,15 @@
+{
+  "name": "lstm",
+  "n_features": 13,
+  "input_len": 48,
+  "output_len": 24,
+  "n_params": 208408,
+  "best_epoch": 8,
+  "best_val_loss": 0.11894316572735246,
+  "best_val_rmse_c": 1.938321947729316,
+  "train_rmse_c": 1.648149582907221,
+  "train_mae_c": 1.2119289281926617,
+  "val_rmse_c": 1.938321947729316,
+  "val_mae_c": 1.4338698190403345,
+  "overfit_ratio": 1.1760594838183627
+}

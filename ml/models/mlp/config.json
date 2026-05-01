@@ -1,0 +1,15 @@
+{
+  "name": "mlp",
+  "n_features": 13,
+  "input_len": 48,
+  "output_len": 24,
+  "n_params": 231960,
+  "best_epoch": 5,
+  "best_val_loss": 0.11928588685487593,
+  "best_val_rmse_c": 1.941112484631152,
+  "train_rmse_c": 1.558492405435495,
+  "train_mae_c": 1.145802085767995,
+  "val_rmse_c": 1.941112484631152,
+  "val_mae_c": 1.4163583535538604,
+  "overfit_ratio": 1.245506540719228
+}

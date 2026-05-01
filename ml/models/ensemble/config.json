@@ -1,0 +1,20 @@
+{
+  "name": "ensemble",
+  "members": [
+    "lstm",
+    "gru",
+    "mlp",
+    "tcn"
+  ],
+  "n_features": 13,
+  "input_len": 48,
+  "output_len": 24,
+  "n_params": 710816,
+  "best_epoch": null,
+  "train_rmse_c": 1.5764613723937053,
+  "train_mae_c": 1.1557803886013795,
+  "val_rmse_c": 1.8740645991251708,
+  "val_mae_c": 1.3756187743822859,
+  "best_val_rmse_c": 1.8740645991251708,
+  "overfit_ratio": 1.1887792697892645
+}

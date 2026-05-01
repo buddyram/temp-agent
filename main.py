@@ -144,13 +144,30 @@ def send_record_email(kind, new_temp, prev_temp, current, state):
         print(f"Failed to send email: {e}")
 
 
+CURRENT_FIELDS = [
+    "temperature_2m", "windspeed_10m", "winddirection_10m", "weathercode", "is_day",
+    "pressure_msl", "relative_humidity_2m", "cloud_cover",
+]
+FIELD_RENAME = {
+    "temperature_2m": "temperature",
+    "windspeed_10m": "windspeed",
+    "winddirection_10m": "winddirection",
+    "pressure_msl": "pressure",
+    "relative_humidity_2m": "humidity",
+}
+
+
 def tick(state, url):
     try:
         data = requests.get(url, timeout=15).json()
     except requests.RequestException as e:
         print(f"Fetch failed, skipping tick: {e}")
         return False
-    current = data.get("current_weather", data)
+    raw = data.get("current") or data.get("current_weather") or data
+    # normalize field names to match weather.json's existing schema
+    current = {}
+    for k, v in raw.items():
+        current[FIELD_RENAME.get(k, k)] = v
     temp = current.get("temperature")
     prev_max = state.get("max_temperature")
     prev_min = state.get("min_temperature")
@@ -169,9 +186,13 @@ def main():
     load_env()
     lat = os.environ["LATITUDE"]
     lon = os.environ["LONGITUDE"]
-    url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current_weather=true"
+    url = (
+        f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}"
+        f"&current={','.join(CURRENT_FIELDS)}"
+    )
 
     state = load()
+    state["location"] = {"lat": float(lat), "lon": float(lon)}
     update_extremes(state)
     save(state)
 

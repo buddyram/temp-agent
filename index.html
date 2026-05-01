@@ -9,6 +9,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
 <style>
   :root {
     --bg-0: #07090f;
@@ -23,118 +25,966 @@
     --hot: #ff5d5d;
     --cold: #5fb6ff;
     --good: #6ee7a7;
+    --purple: #c084fc;
   }
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; }
   body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-    background:
-      radial-gradient(1200px 600px at 10% -10%, rgba(255,122,89,0.12), transparent 60%),
-      radial-gradient(1000px 600px at 110% 0%, rgba(95,168,255,0.12), transparent 60%),
-      var(--bg-0);
+    background: var(--bg-0);
     color: var(--text);
     min-height: 100vh;
     -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+    position: relative;
   }
-  .wrap { max-width: 1200px; margin: 0 auto; padding: 48px 28px 80px; }
+  /* slow drifting aurora — large soft blobs, no perceivable edges */
+  body::before {
+    content: ""; position: fixed; inset: -400px; pointer-events: none; z-index: -1;
+    background:
+      radial-gradient(1400px 1000px at 15% 10%, rgba(255,122,89,0.14), transparent 100%),
+      radial-gradient(1400px 1000px at 85% 25%, rgba(95,168,255,0.14), transparent 100%),
+      radial-gradient(1100px 800px at 50% 90%, rgba(192,132,252,0.09), transparent 100%);
+  }
+  /* live NEON weather scene */
+  .scene-card { margin-top: 18px; padding: 26px; }
+  .scene {
+    position: relative; width: 100%; height: 300px;
+    border-radius: 14px; overflow: hidden;
+    background:
+      linear-gradient(180deg, var(--sky-from, #0a0420), var(--sky-to, #2a0a4a));
+    transition: background 1.2s ease;
+    box-shadow: inset 0 0 100px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(255,255,255,0.04);
+  }
+  /* horizon neon line */
+  .scene::after {
+    content: ""; position: absolute; left: 0; right: 0; bottom: 28%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--horizon, #ff7a59) 20%, var(--horizon, #ff7a59) 80%, transparent);
+    box-shadow: 0 0 12px var(--horizon, #ff7a59), 0 0 24px var(--horizon, #ff7a59);
+    opacity: 0.85;
+    transition: background 1.2s, box-shadow 1.2s;
+  }
+  /* faux scanline for retro neon vibe */
+  .scene::before {
+    content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 5;
+    background: repeating-linear-gradient(180deg, transparent 0 3px, rgba(0,0,0,0.06) 3px 4px);
+    mix-blend-mode: overlay; opacity: 0.6;
+  }
+  .scene .stars { position: absolute; inset: 0; opacity: var(--stars-opacity, 0); transition: opacity 1s; }
+  .scene .star {
+    position: absolute; width: 2px; height: 2px; background: #fff; border-radius: 50%;
+    box-shadow: 0 0 4px #fff, 0 0 10px rgba(255,255,255,0.7);
+    animation: twinkle 3s ease-in-out infinite;
+  }
+  @keyframes twinkle { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+
+  /* celestial body: solid glowing neon disc */
+  .scene .celestial {
+    position: absolute; width: 56px; height: 56px; border-radius: 50%;
+    left: var(--sun-x, 50%); top: var(--sun-y, 25%);
+    transform: translate(-50%, -50%);
+    opacity: var(--celestial-opacity, 1);
+    background: radial-gradient(circle at 35% 35%, #fff 0%, var(--celestial-color, #ffd866) 55%, var(--celestial-color, #ffd866) 100%);
+    box-shadow:
+      0 0 18px var(--celestial-color, #ffd866),
+      0 0 40px var(--celestial-color, #ffd866),
+      0 0 80px var(--celestial-color, #ffd866);
+    transition: left 1.5s ease, top 1.5s ease, opacity 1s ease, background 1.2s, box-shadow 1.2s;
+  }
+  /* gloom overlay — darkens everything when heavily clouded */
+  .scene .gloom {
+    position: absolute; inset: 0; pointer-events: none; z-index: 4;
+    background: linear-gradient(180deg, rgba(8,10,20,0.55), rgba(8,10,20,0.2));
+    opacity: var(--gloom, 0); mix-blend-mode: multiply;
+    transition: opacity 0.8s ease;
+  }
+  /* lightning flash + bolt for thunderstorms */
+  .scene .lightning {
+    position: absolute; inset: 0; pointer-events: none; z-index: 4;
+    background: radial-gradient(ellipse at var(--bolt-x, 40%) 22%, rgba(220,235,255,0.95), rgba(180,200,255,0.35) 40%, transparent 72%);
+    opacity: 0;
+    animation: lflash 6.5s steps(1) infinite;
+  }
+  @keyframes lflash {
+    0%, 18%, 19.5%, 21%, 22.5%, 60%, 61%, 62.5%, 100% { opacity: 0; }
+    18.5% { opacity: 1; }
+    20% { opacity: 0.55; }
+    22% { opacity: 0.85; }
+    60.5% { opacity: 0.7; }
+    61.5% { opacity: 0.35; }
+  }
+  .scene .bolt {
+    position: absolute; top: 3%; left: var(--bolt-x, 40%);
+    width: 36px; height: 62%;
+    pointer-events: none; z-index: 6;
+    opacity: 0;
+    transform: translateX(-50%);
+    filter: drop-shadow(0 0 6px #fff) drop-shadow(0 0 18px #cfe0ff);
+    animation: lbolt 6.5s steps(1) infinite;
+  }
+  .scene .bolt path { stroke: #fff; stroke-width: 2; fill: rgba(255,255,255,0.06); stroke-linejoin: round; }
+  @keyframes lbolt {
+    0%, 19%, 22%, 23%, 60.5%, 62%, 100% { opacity: 0; }
+    18.5% { opacity: 1; }
+    22.5% { opacity: 0.9; }
+    61% { opacity: 0.85; }
+  }
+
+  /* mountains as outlined neon strokes */
+  .scene .mountains { position: absolute; left: 0; right: 0; bottom: 0; width: 100%; height: 70%; pointer-events: none; z-index: 2; }
+  .scene .mountains path { fill: rgba(7,9,18,0.65); stroke: var(--mountain-stroke, #5fa8ff); stroke-width: 1.4; stroke-linejoin: round; filter: drop-shadow(0 0 6px var(--mountain-stroke, #5fa8ff)) drop-shadow(0 0 14px var(--mountain-stroke, #5fa8ff)); }
+  .scene .mountains path.back { stroke-width: 1; opacity: 0.55; }
+
+  /* clouds as outlined neon shapes */
+  .scene .cloud {
+    position: absolute; top: var(--top, 30%);
+    width: var(--w, 80px); height: var(--h, 26px);
+    animation: drift var(--speed, 60s) linear infinite;
+    animation-delay: var(--delay, 0s);
+    z-index: 1;
+  }
+  .scene .cloud svg { width: 100%; height: 100%; overflow: visible; }
+  .scene .cloud path {
+    fill: rgba(7,9,18,0.55);
+    stroke: var(--cloud-stroke, #c084fc);
+    stroke-width: 1.5;
+    stroke-linejoin: round;
+    filter: drop-shadow(0 0 4px var(--cloud-stroke, #c084fc)) drop-shadow(0 0 10px var(--cloud-stroke, #c084fc));
+  }
+  @keyframes drift {
+    from { transform: translateX(-180px); }
+    to   { transform: translateX(calc(100vw + 180px)); }
+  }
+
+  /* trees as neon outlined SVG — biased downwind bend with gusts + leaf flutter */
+  .scene .tree {
+    position: absolute; bottom: 14%; left: var(--x, 50%);
+    width: 36px; height: 80px;
+    transform-origin: bottom center;
+    transform: scale(var(--scale, 1));
+    z-index: 3;
+  }
+  .scene .tree .bend {
+    width: 100%; height: 100%;
+    transform-origin: 50% 100%;
+    animation: bend var(--sway-speed, 4s) cubic-bezier(.4,0,.6,1) infinite;
+    animation-delay: var(--sway-delay, 0s);
+  }
+  .scene .tree svg { width: 100%; height: 100%; overflow: visible; }
+  .scene .tree .trunk-line { stroke: #ff7a59; stroke-width: 2; fill: none; stroke-linecap: round; filter: drop-shadow(0 0 3px #ff7a59) drop-shadow(0 0 8px #ff7a59); }
+  .scene .tree .leaves-line { stroke: #6ee7a7; stroke-width: 1.6; fill: rgba(7,9,18,0.4); filter: drop-shadow(0 0 4px #6ee7a7) drop-shadow(0 0 12px #6ee7a7); }
+  /* snow-frosted trees: layer of white over leaves */
+  .scene .tree.snowy .leaves-line { stroke: #eaf4ff; fill: rgba(235,245,255,0.35); filter: drop-shadow(0 0 4px #eaf4ff) drop-shadow(0 0 10px #b8d6ff); }
+  .scene .tree.snowy .trunk-line { stroke: #d0e6ff; filter: drop-shadow(0 0 3px #d0e6ff) drop-shadow(0 0 7px #b8d6ff); }
+  .scene .tree.snowy .frost { stroke: #fff; stroke-width: 2.4; stroke-linecap: round; fill: none; filter: drop-shadow(0 0 4px #fff) drop-shadow(0 0 9px #cfe0ff); opacity: 0.9; }
+  /* fog: drifting horizontal bands of mist */
+  .scene .fog {
+    position: absolute; left: -20%; right: -20%;
+    height: 22px;
+    top: var(--fog-top, 50%);
+    background: linear-gradient(90deg, transparent, rgba(220,230,255,0.55) 30%, rgba(220,230,255,0.7) 50%, rgba(220,230,255,0.55) 70%, transparent);
+    filter: blur(8px);
+    opacity: 0.85;
+    pointer-events: none;
+    z-index: 3;
+    animation: fog-drift var(--fog-speed, 30s) linear infinite;
+    animation-delay: var(--fog-delay, 0s);
+  }
+  @keyframes fog-drift {
+    from { transform: translateX(-20%); }
+    to   { transform: translateX(20%); }
+  }
+  .scene .tree .crown {
+    transform-origin: 18px 48px;
+    animation: flutter calc(var(--sway-speed, 4s) * 0.42) ease-in-out infinite alternate;
+    animation-delay: var(--sway-delay, 0s);
+  }
+  /* asymmetric gusty bend — biased to positive (downwind) side */
+  @keyframes bend {
+    0%   { transform: rotate(calc(var(--sway-deg, 3deg) * 0.15)); }
+    14%  { transform: rotate(calc(var(--sway-deg, 3deg) * 0.85)); }
+    28%  { transform: rotate(calc(var(--sway-deg, 3deg) * 0.5)); }
+    44%  { transform: rotate(calc(var(--sway-deg, 3deg) * 1.0)); }
+    60%  { transform: rotate(calc(var(--sway-deg, 3deg) * 0.65)); }
+    78%  { transform: rotate(calc(var(--sway-deg, 3deg) * 0.95)); }
+    100% { transform: rotate(calc(var(--sway-deg, 3deg) * 0.2)); }
+  }
+  @keyframes flutter {
+    from { transform: rotate(calc(var(--sway-deg, 3deg) * -0.35)); }
+    to   { transform: rotate(calc(var(--sway-deg, 3deg) * 0.65)); }
+  }
+
+  /* neon ground grid */
+  .scene .grid-floor {
+    position: absolute; left: 0; right: 0; bottom: 0; height: 28%;
+    background-image:
+      linear-gradient(90deg, rgba(255,122,89,0.18) 1px, transparent 1px),
+      linear-gradient(0deg, rgba(255,122,89,0.18) 1px, transparent 1px);
+    background-size: 40px 20px, 40px 20px;
+    background-position: 50% 100%, 50% 100%;
+    transform: perspective(280px) rotateX(60deg);
+    transform-origin: bottom center;
+    mask-image: linear-gradient(180deg, transparent, #000 30%);
+    -webkit-mask-image: linear-gradient(180deg, transparent, #000 30%);
+    z-index: 1;
+  }
+
+  .scene .rain {
+    position: absolute; top: -14px; width: 1.5px; height: 14px;
+    background: linear-gradient(180deg, transparent, #5fa8ff);
+    box-shadow: 0 0 6px #5fa8ff;
+    animation: fall linear infinite;
+    z-index: 4;
+  }
+  .scene .snow {
+    position: absolute; top: -8px; width: 4px; height: 4px;
+    background: #fff; border-radius: 50%;
+    box-shadow: 0 0 8px #fff, 0 0 16px rgba(255,255,255,0.5);
+    animation: fall linear infinite, drift-x 6s ease-in-out infinite alternate;
+    z-index: 4;
+  }
+  @keyframes fall { to { transform: translateY(310px); } }
+  @keyframes drift-x { from { margin-left: -8px; } to { margin-left: 8px; } }
+  .scene-meta {
+    color: var(--text-dim); font-size: 12px; font-family: 'JetBrains Mono', monospace;
+    margin-top: 12px; display: flex; gap: 16px; flex-wrap: wrap;
+  }
+  .scene-meta span { display: inline-flex; align-items: center; gap: 6px; }
+  .scene-meta svg { width: 13px; height: 13px; }
+
+  /* 3D neural network viewer */
+  .model-card { margin-top: 18px; padding: 26px; }
+  .model-card h3 { display: flex; align-items: center; gap: 10px; margin: 0 0 6px; font-size: 16px; font-weight: 600; letter-spacing: -0.01em; }
+  .model-card h3 svg { width: 18px; height: 18px; color: var(--purple); }
+  .model-card .model-sub { color: var(--text-dim); font-size: 12px; font-family: 'JetBrains Mono', monospace; margin-bottom: 16px; }
+  .model-canvas-wrap {
+    position: relative; height: 460px; border-radius: 14px; overflow: hidden;
+    background: radial-gradient(800px 400px at 50% 50%, rgba(192,132,252,0.06), transparent 70%);
+  }
+  #neural-bg { width: 100%; height: 100%; display: block; }
+  .model-labels {
+    position: absolute; inset: 0; pointer-events: none;
+    display: grid; grid-template-columns: repeat(4, 1fr); align-items: end; padding: 0 0 14px;
+  }
+  .model-labels span {
+    text-align: center; font-size: 11px; font-family: 'JetBrains Mono', monospace;
+    color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.14em;
+  }
+  .model-labels span b { color: var(--text); font-weight: 600; display: block; font-size: 13px; letter-spacing: -0.01em; text-transform: none; margin-bottom: 2px; }
+  /* flowing particle background */
+  #particles-bg {
+    position: fixed; inset: 0; width: 100%; height: 100%;
+    pointer-events: none; z-index: 0;
+    mix-blend-mode: screen; opacity: 0.9;
+  }
+  /* mouse-following spotlight on whole page */
+  .cursor-light {
+    position: fixed; width: 600px; height: 600px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,122,89,0.07), transparent 60%);
+    pointer-events: none; z-index: 0;
+    transform: translate(-50%, -50%);
+    left: 50%; top: 50%;
+    transition: opacity 0.3s;
+    mix-blend-mode: screen;
+  }
+
+  .wrap { max-width: 1200px; margin: 0 auto; padding: 48px 28px 80px; position: relative; z-index: 1; }
+
   header { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; margin-bottom: 36px; flex-wrap: wrap; }
+  .header-right { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .global-picker {
+    display: none; align-items: center; gap: 8px;
+    color: var(--text-dim); font-size: 12px; font-family: 'JetBrains Mono', monospace;
+    background: rgba(20,25,39,0.7); border: 1px solid var(--line-2);
+    padding: 8px 14px; border-radius: 12px; backdrop-filter: blur(10px);
+    box-shadow: 0 4px 18px rgba(0,0,0,0.18);
+  }
+  .global-picker.shown { display: inline-flex; }
+  .global-picker svg { width: 14px; height: 14px; color: var(--purple); }
+  .global-picker select {
+    background: transparent; color: var(--text); border: none; outline: none;
+    font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer; padding: 0 2px;
+  }
+  .global-picker select option { background: #0d1018; color: var(--text); }
+  .global-picker .gp-label { color: var(--text-dim); }
   .brand { display: flex; align-items: center; gap: 14px; }
   .logo {
-    width: 44px; height: 44px; border-radius: 12px;
+    width: 48px; height: 48px; border-radius: 14px;
     background: linear-gradient(135deg, var(--accent), var(--accent-2));
-    display: grid; place-items: center; font-size: 22px;
-    box-shadow: 0 8px 30px rgba(255,122,89,0.3);
+    display: grid; place-items: center;
+    box-shadow: 0 8px 30px rgba(255,122,89,0.45), inset 0 0 0 1px rgba(255,255,255,0.1);
+    position: relative; overflow: hidden;
   }
+  .logo svg { stroke: white; width: 24px; height: 24px; position: relative; z-index: 1; }
   h1 { font-size: 22px; font-weight: 700; margin: 0; letter-spacing: -0.02em; }
   .subtitle { color: var(--text-dim); font-size: 13px; margin-top: 2px; }
+
   .pill {
     display: inline-flex; align-items: center; gap: 8px;
-    background: var(--bg-2); border: 1px solid var(--line);
+    background: rgba(20,25,39,0.65); border: 1px solid var(--line);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
     padding: 8px 14px; border-radius: 999px; font-size: 13px; color: var(--text-dim);
   }
-  .pulse { width: 8px; height: 8px; border-radius: 50%; background: var(--good); box-shadow: 0 0 0 0 rgba(110,231,167,0.5); animation: pulse 2s infinite; }
+  .pulse { width: 8px; height: 8px; border-radius: 50%; background: var(--good); box-shadow: 0 0 10px var(--good); animation: pulse 2s infinite; }
   @keyframes pulse {
-    0% { box-shadow: 0 0 0 0 rgba(110,231,167,0.6); }
-    70% { box-shadow: 0 0 0 10px rgba(110,231,167,0); }
-    100% { box-shadow: 0 0 0 0 rgba(110,231,167,0); }
+    0%   { box-shadow: 0 0 0 0 rgba(110,231,167,0.6), 0 0 12px var(--good); }
+    70%  { box-shadow: 0 0 0 12px rgba(110,231,167,0), 0 0 14px var(--good); }
+    100% { box-shadow: 0 0 0 0 rgba(110,231,167,0), 0 0 8px var(--good); }
   }
 
   .grid { display: grid; gap: 18px; }
-  .cards {
-    grid-template-columns: repeat(4, 1fr);
-    margin-bottom: 18px;
-  }
+  .cards { grid-template-columns: repeat(4, 1fr); margin-bottom: 18px; }
   @media (max-width: 880px) { .cards { grid-template-columns: repeat(2, 1fr); } }
   @media (max-width: 480px) { .cards { grid-template-columns: 1fr; } }
 
   .card {
-    background: linear-gradient(180deg, var(--bg-1), var(--bg-2));
+    background: linear-gradient(180deg, rgba(13,16,24,0.85), rgba(20,25,39,0.85));
     border: 1px solid var(--line);
     border-radius: 18px;
     padding: 22px 22px 20px;
-    position: relative;
-    overflow: hidden;
+    position: relative; overflow: hidden;
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.3s ease;
   }
+  /* mouse-tracking spotlight inside the card */
   .card::before {
     content: ""; position: absolute; inset: 0; pointer-events: none;
-    background: radial-gradient(400px 120px at 0% 0%, rgba(255,255,255,0.04), transparent 60%);
+    background: radial-gradient(280px circle at var(--mx, 50%) var(--my, 50%), rgba(255,255,255,0.07), transparent 50%);
+    opacity: 0; transition: opacity 0.25s;
   }
-  .card .label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--text-dim); font-weight: 600; }
+  .card:hover { transform: translateY(-2px); border-color: var(--line-2); box-shadow: 0 24px 60px -28px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.04); }
+  .card:hover::before { opacity: 1; }
+  .card.hot:hover { box-shadow: 0 24px 60px -28px rgba(255,93,93,0.45), 0 0 0 1px rgba(255,93,93,0.15); }
+  .card.cold:hover { box-shadow: 0 24px 60px -28px rgba(95,182,255,0.45), 0 0 0 1px rgba(95,182,255,0.15); }
+  .card.neutral:hover { box-shadow: 0 24px 60px -28px rgba(255,122,89,0.45), 0 0 0 1px rgba(255,122,89,0.15); }
+  .card.stats:hover { box-shadow: 0 24px 60px -28px rgba(95,168,255,0.45), 0 0 0 1px rgba(95,168,255,0.15); }
+
+  .card .label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--text-dim); font-weight: 600; }
   .card .value { font-size: 38px; font-weight: 800; margin-top: 8px; letter-spacing: -0.03em; line-height: 1; font-variant-numeric: tabular-nums; }
   .card .sub { color: var(--text-dim); font-size: 12px; margin-top: 8px; font-family: 'JetBrains Mono', monospace; }
   .card.hot .value { background: linear-gradient(135deg, var(--hot), var(--accent)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
   .card.cold .value { background: linear-gradient(135deg, var(--cold), var(--accent-2)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
-  .card .icon { position: absolute; top: 18px; right: 18px; font-size: 22px; opacity: 0.85; }
+  .card .icon {
+    position: absolute; top: 18px; right: 18px;
+    width: 38px; height: 38px; border-radius: 10px;
+    display: grid; place-items: center;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--line);
+    transition: transform 0.25s, box-shadow 0.25s, color 0.25s;
+  }
+  .card:hover .icon { transform: scale(1.08) rotate(-4deg); }
+  .card .icon svg { width: 18px; height: 18px; stroke-width: 2; }
+  .card.hot .icon { color: var(--hot); box-shadow: 0 0 18px rgba(255,93,93,0.25); }
+  .card.cold .icon { color: var(--cold); box-shadow: 0 0 18px rgba(95,182,255,0.25); }
+  .card.neutral .icon { color: var(--accent); box-shadow: 0 0 18px rgba(255,122,89,0.2); }
+  .card.stats .icon { color: var(--accent-2); box-shadow: 0 0 18px rgba(95,168,255,0.2); }
 
   .chart-card { padding: 26px; }
   .chart-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; flex-wrap: wrap; gap: 12px; }
-  .chart-title { font-size: 16px; font-weight: 600; letter-spacing: -0.01em; }
+  .chart-title { font-size: 16px; font-weight: 600; letter-spacing: -0.01em; display: flex; align-items: center; gap: 10px; }
+  .chart-title svg { width: 18px; height: 18px; color: var(--accent); }
   .legend { display: flex; gap: 16px; font-size: 12px; color: var(--text-dim); }
   .legend span::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: middle; }
-  .legend .ln::before { background: var(--accent); }
-  .legend .max::before { background: var(--hot); }
-  .legend .min::before { background: var(--cold); }
+  .legend .ln::before { background: var(--accent); box-shadow: 0 0 8px var(--accent); }
+  .legend .max::before { background: var(--hot); box-shadow: 0 0 8px var(--hot); }
+  .legend .min::before { background: var(--cold); box-shadow: 0 0 8px var(--cold); }
+  .legend .fcst::before { background: var(--purple); width: 14px; height: 2px; border-radius: 0; box-shadow: 0 0 8px var(--purple); }
+  .legend .om::before { background: #5fb6ff; width: 14px; height: 2px; border-radius: 0; box-shadow: 0 0 8px #5fb6ff; }
+  .forecast-note { color: var(--text-dim); font-size: 12px; margin-top: 12px; font-family: 'JetBrains Mono', monospace; }
   .chart-wrap { position: relative; height: 420px; }
 
   .lower { display: grid; grid-template-columns: 2fr 1fr; gap: 18px; margin-top: 18px; }
   @media (max-width: 880px) { .lower { grid-template-columns: 1fr; } }
 
-  .meta-card h3 { margin: 0 0 14px; font-size: 14px; font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.1em; }
-  .kv { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+  .meta-card h3 { margin: 0 0 14px; font-size: 12px; font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.12em; display: flex; align-items: center; gap: 8px; }
+  .meta-card h3 svg { width: 14px; height: 14px; }
+  .kv { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
   .kv:last-child { border-bottom: none; }
-  .kv .k { color: var(--text-dim); }
+  .kv .k { color: var(--text-dim); display: inline-flex; align-items: center; gap: 8px; }
+  .kv .k svg { width: 14px; height: 14px; opacity: 0.65; }
   .kv .v { font-family: 'JetBrains Mono', monospace; font-weight: 500; }
 
-  .recent { max-height: 460px; overflow-y: auto; }
+  .recent { max-height: 460px; overflow-y: auto; padding-right: 4px; }
   .recent::-webkit-scrollbar { width: 8px; }
   .recent::-webkit-scrollbar-thumb { background: var(--line-2); border-radius: 4px; }
-  .row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--line); font-size: 13px; }
+  .row { display: flex; justify-content: space-between; align-items: center; padding: 12px 8px; border-bottom: 1px solid var(--line); font-size: 13px; border-radius: 8px; transition: background 0.18s, transform 0.18s; }
   .row:last-child { border-bottom: none; }
+  .row:hover { background: rgba(255,255,255,0.03); transform: translateX(2px); }
   .row .t { color: var(--text-dim); font-family: 'JetBrains Mono', monospace; font-size: 12px; }
-  .row .temp { font-weight: 600; font-variant-numeric: tabular-nums; }
+  .row .temp { font-weight: 600; font-variant-numeric: tabular-nums; display: inline-flex; align-items: center; gap: 6px; }
+  .row .temp svg { width: 12px; height: 12px; }
+  .row.is-max .temp { color: var(--hot); }
+  .row.is-min .temp { color: var(--cold); }
+
+  /* === model showdown card === */
+  .showdown-card { margin-top: 18px; padding: 26px; }
+  .showdown-head h3 { display: flex; align-items: center; gap: 10px; margin: 0 0 6px; font-size: 16px; font-weight: 600; letter-spacing: -0.01em; }
+  .showdown-head h3 svg { width: 18px; height: 18px; color: #ffd866; }
+  .showdown-sub { color: var(--text-dim); font-size: 12px; font-family: 'JetBrains Mono', monospace; margin-bottom: 18px; }
+  .showdown-grid {
+    display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 24px;
+  }
+  @media (max-width: 980px) { .showdown-grid { grid-template-columns: 1fr; } }
+  .showdown-controls { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; }
+  .showdown-controls button {
+    background: rgba(20,25,39,0.6); border: 1px solid var(--line-2); color: var(--text);
+    padding: 8px 14px; border-radius: 10px; cursor: pointer;
+    font-family: inherit; font-weight: 600; font-size: 12px;
+    display: inline-flex; align-items: center; gap: 6px; backdrop-filter: blur(8px);
+    transition: all 0.18s ease;
+  }
+  .showdown-controls button:hover { transform: translateY(-1px); border-color: rgba(255,255,255,0.18); box-shadow: 0 6px 18px rgba(0,0,0,0.3); }
+  .showdown-controls button svg { width: 13px; height: 13px; }
+  .showdown-anchor { color: var(--text-dim); font-size: 12px; font-family: 'JetBrains Mono', monospace; }
+  .showdown-anchor b { color: var(--text); font-weight: 600; }
+  .showdown-legend { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 10px; font-size: 12px; font-family: 'JetBrains Mono', monospace; color: var(--text-dim); }
+  .showdown-legend .swatch { display: inline-flex; align-items: center; gap: 6px; }
+  .showdown-legend .swatch::before {
+    content: ""; width: 14px; height: 3px; border-radius: 2px; background: var(--c, #5fa8ff);
+    box-shadow: 0 0 8px var(--c, #5fa8ff);
+  }
+  .showdown-legend .swatch.actual::before { background: var(--good); box-shadow: 0 0 8px var(--good); }
+  .showdown-legend .swatch.history::before { background: #5fa8ff; box-shadow: 0 0 8px #5fa8ff; opacity: 0.6; }
+
+  .leaderboard-wrap { display: flex; flex-direction: column; }
+  .leaderboard-title { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; margin-bottom: 4px; letter-spacing: -0.01em; }
+  .leaderboard-title svg { width: 14px; height: 14px; color: var(--purple); }
+  .leaderboard-hint { color: var(--text-dim); font-size: 11px; font-family: 'JetBrains Mono', monospace; margin-bottom: 12px; }
+  table.leaderboard { width: 100%; border-collapse: collapse; font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+  table.leaderboard th, table.leaderboard td { text-align: left; padding: 8px 10px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+  table.leaderboard th { color: var(--text-dim); font-weight: 600; cursor: pointer; user-select: none; white-space: nowrap; }
+  table.leaderboard th:hover { color: var(--text); }
+  table.leaderboard th.sorted { color: var(--accent-2); }
+  table.leaderboard th.sorted::after { content: " ↓"; }
+  table.leaderboard th.sorted.asc::after { content: " ↑"; }
+  table.leaderboard th.num, table.leaderboard td.num { text-align: right; }
+  table.leaderboard tr.row-current td { background: rgba(192,132,252,0.08); }
+  table.leaderboard tr.rank-1 td:first-child::before {
+    content: "★"; color: #ffd866; margin-right: 6px;
+  }
+  table.leaderboard td.model-cell {
+    display: flex; align-items: center; gap: 8px; cursor: pointer;
+  }
+  table.leaderboard td.model-cell:hover { color: var(--accent-2); }
+  table.leaderboard td.model-cell .dot {
+    width: 8px; height: 8px; border-radius: 50%; background: var(--c, #5fa8ff);
+    box-shadow: 0 0 6px var(--c, #5fa8ff);
+  }
+  table.leaderboard td.best { color: var(--good); font-weight: 600; }
+  table.leaderboard td.worst { color: var(--text-dim); }
+
+  /* === interactive pipeline slideshow === */
+  .pipeline-card { margin-top: 18px; padding: 26px; position: relative; overflow: hidden; }
+  .pipeline-card h3 { display: flex; align-items: center; gap: 10px; margin: 0 0 6px; font-size: 16px; font-weight: 600; letter-spacing: -0.01em; }
+  .pipeline-card h3 svg { width: 18px; height: 18px; color: var(--accent-2); }
+  .pipeline-card .pipeline-sub { color: var(--text-dim); font-size: 12px; font-family: 'JetBrains Mono', monospace; margin-bottom: 18px; }
+  .pipeline-stage {
+    position: relative; height: 380px; width: 100%;
+    border-radius: 14px; overflow: hidden;
+    background: linear-gradient(180deg, rgba(10,10,30,0.55), rgba(10,10,30,0.85));
+    border: 1px solid var(--line-2);
+    box-shadow: inset 0 0 60px rgba(0,0,0,0.5);
+  }
+  .pipeline-slide {
+    position: absolute; inset: 0;
+    display: grid; grid-template-columns: 1.3fr 1fr; gap: 24px;
+    padding: 28px;
+    opacity: 0; visibility: hidden; pointer-events: none;
+    transition: opacity 0.5s ease, transform 0.55s cubic-bezier(.2,.8,.2,1);
+    transform: translateX(50px);
+  }
+  .pipeline-slide.active { opacity: 1; visibility: visible; transform: translateX(0); pointer-events: auto; }
+  @media (max-width: 720px) { .pipeline-slide { grid-template-columns: 1fr; padding: 18px; } .pipeline-stage { height: auto; min-height: 520px; } }
+  .slide-viz { position: relative; height: 100%; min-height: 220px; }
+  .slide-viz svg { width: 100%; height: 100%; overflow: visible; display: block; }
+  .slide-text { display: flex; flex-direction: column; justify-content: center; gap: 10px; }
+  .slide-num { font-family: 'JetBrains Mono', monospace; color: var(--accent-2); font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; opacity: 0.9; }
+  .slide-title { font-size: 24px; font-weight: 700; letter-spacing: -0.01em; line-height: 1.15; }
+  .slide-title .ac { background: linear-gradient(90deg, #ff7a59, #c084fc); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .slide-body { color: var(--text-dim); font-size: 14px; line-height: 1.55; }
+  .slide-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+  .slide-tag { font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 4px 9px; border-radius: 6px; background: rgba(95,168,255,0.1); border: 1px solid rgba(95,168,255,0.3); color: var(--accent-2); }
+
+  .nl { stroke-linecap: round; stroke-linejoin: round; fill: none; }
+  .ng-cy { filter: drop-shadow(0 0 4px #5fa8ff) drop-shadow(0 0 10px #5fa8ff); }
+  .ng-or { filter: drop-shadow(0 0 4px #ff7a59) drop-shadow(0 0 10px #ff7a59); }
+  .ng-pu { filter: drop-shadow(0 0 4px #c084fc) drop-shadow(0 0 12px #c084fc); }
+  .ng-gr { filter: drop-shadow(0 0 4px #6ee7a7) drop-shadow(0 0 10px #6ee7a7); }
+  .ng-pi { filter: drop-shadow(0 0 4px #ff5d8a) drop-shadow(0 0 10px #ff5d8a); }
+  .ng-yl { filter: drop-shadow(0 0 4px #ffd866) drop-shadow(0 0 10px #ffd866); }
+
+  /* slide 1: fetch */
+  @keyframes flow-dash { to { stroke-dashoffset: -200; } }
+  .pl-flow { stroke-dasharray: 16 22; animation: flow-dash 2.2s linear infinite; }
+  @keyframes drop-pulse { 0%,100%{transform:translate(0,0);opacity:0;} 25%{opacity:1;} 100%{transform:translate(0,80px);opacity:0;} }
+  .pl-drop { animation: drop-pulse 2.2s ease-in infinite; }
+  .pl-drop:nth-child(2) { animation-delay: 0.5s; }
+  .pl-drop:nth-child(3) { animation-delay: 1s; }
+  .pl-drop:nth-child(4) { animation-delay: 1.5s; }
+
+  /* slide 2: archive — bars (one-shot rise on slide entry, then static) */
+  @keyframes bar-rise-once { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+  .pipeline-slide.active .pl-bar { transform-origin: bottom; animation: bar-rise-once 0.8s cubic-bezier(.2,.8,.2,1) both; }
+
+  /* slide 3: train — neurons + loss */
+  @keyframes node-fire { 0%,100%{opacity:.25;} 50%{opacity:1;} }
+  .pl-node { animation: node-fire 1.8s ease-in-out infinite; }
+  @keyframes connect-flow { to { stroke-dashoffset: -120; } }
+  .pl-conn { stroke-dasharray: 4 8; animation: connect-flow 1.8s linear infinite; opacity: 0.5; }
+  @keyframes loss-draw { to { stroke-dashoffset: 0; } }
+  .pl-loss { stroke-dasharray: 600; stroke-dashoffset: 600; animation: loss-draw 4s ease-out infinite; }
+
+  /* slide 4: window */
+  @keyframes win-slide { 0%,100%{transform:translateX(0);} 50%{transform:translateX(60px);} }
+  .pl-win { animation: win-slide 3.2s ease-in-out infinite; }
+
+  /* slide 5: predict */
+  @keyframes line-grow { to { stroke-dashoffset: 0; } }
+  .pl-actual { stroke-dasharray: 500; stroke-dashoffset: 500; animation: line-grow 3s ease-out infinite alternate; }
+  .pl-pred { stroke-dasharray: 400; stroke-dashoffset: 400; animation: line-grow 3s 1s ease-out infinite alternate; }
+
+  /* slide 6: email */
+  @keyframes env-fly {
+    0% { transform: translate(-30px, 80px) rotate(-8deg); opacity: 0; }
+    15% { opacity: 1; }
+    85% { opacity: 1; }
+    100% { transform: translate(280px, -60px) rotate(8deg); opacity: 0; }
+  }
+  .pl-env { animation: env-fly 3.2s ease-in-out infinite; }
+  @keyframes trail-fade { 0% { opacity: 0.8; } 100% { opacity: 0; transform: translate(-30px, 0); } }
+
+  /* slide 7: visualize — orbiting glyphs */
+  @keyframes orbit { to { transform: rotate(360deg); } }
+  .pl-orbit { transform-origin: center; animation: orbit 22s linear infinite; }
+  .pl-orbit-rev { transform-origin: center; animation: orbit 14s linear infinite reverse; }
+
+  /* progress bar */
+  .pipeline-progress {
+    position: absolute; left: 0; bottom: 0; height: 2px;
+    background: linear-gradient(90deg, #ff7a59, #c084fc);
+    box-shadow: 0 0 8px #ff7a59, 0 0 14px #c084fc;
+    width: 0; transition: width 0.25s linear;
+  }
+
+  /* controls */
+  .pipeline-controls { display: flex; align-items: center; justify-content: center; gap: 18px; margin-top: 18px; }
+  .pipeline-btn {
+    background: rgba(20,25,39,0.6); border: 1px solid var(--line-2); color: var(--text);
+    width: 40px; height: 40px; border-radius: 50%; cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center;
+    transition: all 0.25s;
+  }
+  .pipeline-btn:hover { border-color: var(--accent); color: var(--accent); box-shadow: 0 0 14px rgba(255,122,89,0.5); transform: scale(1.06); }
+  .pipeline-btn svg { width: 16px; height: 16px; }
+  .pipeline-dots { display: flex; gap: 8px; }
+  .pipeline-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25);
+    cursor: pointer; transition: all 0.3s; padding: 0;
+  }
+  .pipeline-dot:hover { background: rgba(255,255,255,0.35); }
+  .pipeline-dot.active {
+    background: var(--accent); border-color: var(--accent);
+    box-shadow: 0 0 10px var(--accent), 0 0 22px var(--accent);
+    width: 26px; border-radius: 5px;
+  }
 
   footer { margin-top: 40px; text-align: center; color: var(--text-dim); font-size: 12px; }
-  footer a { color: var(--accent-2); text-decoration: none; }
+  footer a { color: var(--accent-2); text-decoration: none; transition: text-shadow 0.25s; }
+  footer a:hover { text-shadow: 0 0 12px rgba(95,168,255,0.6); }
 
   .loading { text-align: center; padding: 80px 20px; color: var(--text-dim); }
   .err { background: rgba(255,93,93,0.1); border: 1px solid rgba(255,93,93,0.3); color: #ffb4b4; padding: 16px; border-radius: 12px; }
+
+  .compare-card { margin-top: 18px; }
+  .compare-controls { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 16px; }
+  .compare-controls button {
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    color: #fff; border: none; padding: 9px 16px; border-radius: 10px;
+    font-family: inherit; font-weight: 600; font-size: 13px; cursor: pointer;
+    transition: transform 0.12s, box-shadow 0.25s, filter 0.25s;
+    display: inline-flex; align-items: center; gap: 7px;
+  }
+  .compare-controls button svg { width: 14px; height: 14px; }
+  .compare-controls button:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(255,122,89,0.4); filter: brightness(1.08); }
+  .compare-controls button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+  .compare-controls button.secondary {
+    background: rgba(20,25,39,0.6); border: 1px solid var(--line-2); color: var(--text);
+    backdrop-filter: blur(8px);
+  }
+  .compare-controls button.secondary:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.4); border-color: rgba(255,255,255,0.18); }
+  .compare-controls .hint { color: var(--text-dim); font-size: 12px; font-family: 'JetBrains Mono', monospace; display: inline-flex; align-items: center; gap: 6px; }
+  .compare-controls .hint svg { width: 12px; height: 12px; }
+  .model-picker {
+    display: inline-flex; align-items: center; gap: 8px;
+    color: var(--text-dim); font-size: 12px; font-family: 'JetBrains Mono', monospace;
+    background: rgba(20,25,39,0.6); border: 1px solid var(--line-2);
+    padding: 7px 12px; border-radius: 10px; backdrop-filter: blur(8px);
+  }
+  .model-picker svg { width: 13px; height: 13px; color: var(--accent-2); }
+  .model-picker select {
+    background: transparent; color: var(--text); border: none; outline: none;
+    font-family: inherit; font-size: 12px; cursor: pointer; padding-right: 4px;
+  }
+  .model-picker select option { background: #0d1018; color: var(--text); }
+  .compare-metrics { display: flex; gap: 24px; color: var(--text-dim); font-size: 13px; margin-top: 12px; font-family: 'JetBrains Mono', monospace; }
+  .compare-metrics b { color: var(--text); font-weight: 600; }
+
+  /* fade-in on load */
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: none; }
+  }
+  .fade-in { animation: rise 0.55s cubic-bezier(.2,.8,.2,1) both; }
+  .fade-in:nth-child(1) { animation-delay: 0.05s; }
+  .fade-in:nth-child(2) { animation-delay: 0.10s; }
+  .fade-in:nth-child(3) { animation-delay: 0.15s; }
+  .fade-in:nth-child(4) { animation-delay: 0.20s; }
 </style>
 </head>
 <body>
+<canvas id="particles-bg"></canvas>
+<div class="cursor-light" id="cursor-light"></div>
 <div class="wrap">
   <header>
     <div class="brand">
-      <div class="logo">🌡️</div>
+      <div class="logo"><i data-lucide="thermometer"></i></div>
       <div>
         <h1>temp-agent</h1>
         <div class="subtitle">live temperature log · open-meteo</div>
       </div>
     </div>
-    <div class="pill"><span class="pulse"></span><span id="status">loading…</span></div>
+    <div class="header-right">
+      <label id="global-picker" class="global-picker">
+        <i data-lucide="cpu"></i>
+        <span class="gp-label">model</span>
+        <select id="global-model"></select>
+      </label>
+      <div class="pill"><span class="pulse"></span><span id="status">loading…</span></div>
+    </div>
   </header>
 
   <div id="root">
     <div class="loading">Loading weather data…</div>
+  </div>
+
+  <div id="compare-panel" class="card chart-card compare-card" style="display:none;">
+    <div class="chart-head">
+      <div class="chart-title"><i data-lucide="sparkles"></i> Click any point in recorded history to predict from there</div>
+      <div class="legend">
+        <span class="ln">history</span>
+        <span class="fcst">predicted (24h)</span>
+        <span style="color:var(--good)">actual</span>
+      </div>
+    </div>
+    <div class="compare-controls">
+      <button id="compare-rand" class="secondary"><i data-lucide="shuffle"></i> Random point</button>
+      <button id="compare-clear" class="secondary"><i data-lucide="x"></i> Clear strands</button>
+      <span class="hint"><i data-lucide="mouse-pointer-click"></i> click anywhere on the chart · model picker is in the top-right</span>
+    </div>
+    <div class="chart-wrap" style="height:480px;"><canvas id="compare-chart"></canvas></div>
+    <div class="compare-metrics" id="compare-metrics"></div>
+  </div>
+
+  <div class="card model-card">
+    <h3><i data-lucide="brain-circuit"></i> Model architecture <span id="model-arch-tag" style="font-size:12px;color:var(--text-dim);font-family:'JetBrains Mono',monospace;font-weight:500;margin-left:8px;"></span></h3>
+    <div class="model-sub" id="model-sub">2-layer LSTM · hidden=128 · dropout=0.2 · predicts residual over next 24h</div>
+    <div class="model-canvas-wrap">
+      <canvas id="neural-bg"></canvas>
+      <div class="model-labels" id="model-labels">
+        <span><b>Input</b>13 features × 48h</span>
+        <span><b>LSTM 1</b>128 hidden</span>
+        <span><b>LSTM 2</b>128 hidden</span>
+        <span><b>Output</b>24h forecast</span>
+      </div>
+    </div>
+  </div>
+
+  <div id="showdown-panel" class="card showdown-card" style="display:none;">
+    <div class="showdown-head">
+      <h3><i data-lucide="trophy"></i> Model showdown</h3>
+      <div class="showdown-sub">Every model on the same anchor — overlaid forecast lines plus a leaderboard ranking by error and overfit.</div>
+    </div>
+
+    <div class="showdown-grid">
+      <div class="showdown-chart-wrap">
+        <div class="showdown-controls">
+          <button id="showdown-rand" class="secondary"><i data-lucide="shuffle"></i> Random anchor</button>
+          <button id="showdown-latest" class="secondary"><i data-lucide="clock-3"></i> Latest live</button>
+          <span class="showdown-anchor" id="showdown-anchor"></span>
+        </div>
+        <div class="chart-wrap" style="height:380px;"><canvas id="showdown-chart"></canvas></div>
+        <div class="showdown-legend" id="showdown-legend"></div>
+      </div>
+
+      <div class="leaderboard-wrap">
+        <div class="leaderboard-title"><i data-lucide="list-ordered"></i> Leaderboard</div>
+        <div class="leaderboard-hint">click a column to sort · lower is better for error · ratio near 1.0 = no overfit</div>
+        <table class="leaderboard" id="leaderboard">
+          <thead>
+            <tr>
+              <th data-key="name">model</th>
+              <th data-key="val_rmse_c" class="num">val&nbsp;RMSE</th>
+              <th data-key="val_mae_c" class="num">val&nbsp;MAE</th>
+              <th data-key="train_rmse_c" class="num">train&nbsp;RMSE</th>
+              <th data-key="overfit_ratio" class="num">overfit</th>
+              <th data-key="n_params" class="num">params</th>
+              <th data-key="best_epoch" class="num">epochs</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="card pipeline-card">
+    <h3><i data-lucide="sparkles"></i> How it works</h3>
+    <div class="pipeline-sub">end-to-end pipeline · click dots, arrows, or use ← / → keys · auto-advances</div>
+
+    <div class="pipeline-stage" id="pipeline-stage">
+      <!-- 1. FETCH -->
+      <div class="pipeline-slide active" data-i="0">
+        <div class="slide-viz">
+          <svg viewBox="0 0 400 280" preserveAspectRatio="xMidYMid meet">
+            <!-- cloud (API source) -->
+            <g class="ng-cy">
+              <path class="nl" stroke="#5fa8ff" stroke-width="2" d="M60,90 Q40,90 40,72 Q40,52 62,55 Q66,38 86,42 Q98,28 118,38 Q138,32 142,55 Q160,55 160,72 Q160,90 140,90 Z"/>
+              <text x="100" y="108" text-anchor="middle" fill="#5fa8ff" font-family="JetBrains Mono" font-size="10" opacity="0.8">open-meteo</text>
+            </g>
+            <!-- flow line -->
+            <path class="nl pl-flow ng-or" stroke="#ff7a59" stroke-width="2" d="M160,72 Q220,72 240,140 Q260,200 320,200"/>
+            <!-- pulses -->
+            <g class="ng-or">
+              <circle class="pl-drop" cx="200" cy="72" r="3.5" fill="#ff7a59"/>
+              <circle class="pl-drop" cx="200" cy="72" r="3.5" fill="#ff7a59"/>
+              <circle class="pl-drop" cx="200" cy="72" r="3.5" fill="#ff7a59"/>
+              <circle class="pl-drop" cx="200" cy="72" r="3.5" fill="#ff7a59"/>
+            </g>
+            <!-- json container -->
+            <g class="ng-pu">
+              <rect class="nl" x="290" y="180" width="90" height="80" rx="8" stroke="#c084fc" stroke-width="2"/>
+              <text x="335" y="206" text-anchor="middle" fill="#c084fc" font-family="JetBrains Mono" font-size="11">weather</text>
+              <text x="335" y="222" text-anchor="middle" fill="#c084fc" font-family="JetBrains Mono" font-size="11">.json</text>
+              <text x="335" y="246" text-anchor="middle" fill="#9aa8ff" font-family="JetBrains Mono" font-size="9" opacity="0.7">append</text>
+            </g>
+          </svg>
+        </div>
+        <div class="slide-text">
+          <div class="slide-num">step 01 · ingest</div>
+          <div class="slide-title"><span class="ac">Fetch</span> live weather</div>
+          <div class="slide-body">A GitHub Action runs <code>main.py</code>, which polls the Open-Meteo API and appends a sample to <code>outputs/weather.json</code> every 30 minutes (backfilling any missed slots since last run). Temperature, humidity, pressure, wind, cloud cover, weathercode all bundled with a UTC timestamp.</div>
+          <div class="slide-tags"><span class="slide-tag">main.py</span><span class="slide-tag">30-min ticks</span><span class="slide-tag">open-meteo</span></div>
+        </div>
+      </div>
+
+      <!-- 2. ARCHIVE -->
+      <div class="pipeline-slide" data-i="1">
+        <div class="slide-viz">
+          <svg viewBox="0 0 400 280">
+            <g class="ng-pu">
+              <line class="nl" stroke="#c084fc" stroke-width="1.5" x1="40" y1="220" x2="360" y2="220"/>
+              <line class="nl" stroke="#c084fc" stroke-width="1.5" x1="40" y1="60" x2="40" y2="220" opacity="0.5"/>
+            </g>
+            <g class="ng-or">
+              <rect class="pl-bar" x="60"  y="120" width="22" height="100" fill="#ff7a59" opacity="0.85" style="animation-delay:0s"/>
+              <rect class="pl-bar" x="92"  y="100" width="22" height="120" fill="#ff7a59" opacity="0.85" style="animation-delay:0.15s"/>
+              <rect class="pl-bar" x="124" y="80"  width="22" height="140" fill="#ff7a59" opacity="0.85" style="animation-delay:0.3s"/>
+              <rect class="pl-bar" x="156" y="110" width="22" height="110" fill="#ff7a59" opacity="0.85" style="animation-delay:0.45s"/>
+              <rect class="pl-bar" x="188" y="70"  width="22" height="150" fill="#ff7a59" opacity="0.85" style="animation-delay:0.6s"/>
+              <rect class="pl-bar" x="220" y="90"  width="22" height="130" fill="#ff7a59" opacity="0.85" style="animation-delay:0.75s"/>
+              <rect class="pl-bar" x="252" y="105" width="22" height="115" fill="#ff7a59" opacity="0.85" style="animation-delay:0.9s"/>
+              <rect class="pl-bar" x="284" y="85"  width="22" height="135" fill="#ff7a59" opacity="0.85" style="animation-delay:1.05s"/>
+              <rect class="pl-bar" x="316" y="115" width="22" height="105" fill="#ff7a59" opacity="0.85" style="animation-delay:1.2s"/>
+            </g>
+            <text x="200" y="248" text-anchor="middle" fill="#9aa8ff" font-family="JetBrains Mono" font-size="11">~2 years · 17,000+ hourly samples</text>
+          </svg>
+        </div>
+        <div class="slide-text">
+          <div class="slide-num">step 02 · archive</div>
+          <div class="slide-title">Build the <span class="ac">training set</span></div>
+          <div class="slide-body">A separate script pulls years of hourly history from Open-Meteo's archive endpoint into <code>history.parquet</code>. The model learns from the long tail across multiple seasons, daily cycles, weather fronts.</div>
+          <div class="slide-tags"><span class="slide-tag">fetch_history.py</span><span class="slide-tag">ERA5</span><span class="slide-tag">parquet</span></div>
+        </div>
+      </div>
+
+      <!-- 3. TRAIN -->
+      <div class="pipeline-slide" data-i="2">
+        <div class="slide-viz">
+          <svg viewBox="0 0 400 280">
+            <!-- 4 layers of nodes: 13 → 128 → 128 → 24 (rendered as 4/8/8/5 visual) -->
+            <g class="ng-cy">
+              <g stroke="#5fa8ff" stroke-width="1" class="pl-conn">
+                <line x1="60" y1="80" x2="150" y2="60"/><line x1="60" y1="80" x2="150" y2="100"/><line x1="60" y1="120" x2="150" y2="60"/><line x1="60" y1="120" x2="150" y2="180"/>
+                <line x1="60" y1="160" x2="150" y2="100"/><line x1="60" y1="160" x2="150" y2="220"/><line x1="60" y1="200" x2="150" y2="180"/><line x1="60" y1="200" x2="150" y2="220"/>
+                <line x1="150" y1="60" x2="250" y2="60"/><line x1="150" y1="100" x2="250" y2="100"/><line x1="150" y1="140" x2="250" y2="140"/><line x1="150" y1="180" x2="250" y2="180"/><line x1="150" y1="220" x2="250" y2="220"/>
+                <line x1="250" y1="60" x2="340" y2="100"/><line x1="250" y1="100" x2="340" y2="100"/><line x1="250" y1="140" x2="340" y2="140"/><line x1="250" y1="180" x2="340" y2="180"/><line x1="250" y1="220" x2="340" y2="180"/>
+              </g>
+              <g fill="#5fa8ff">
+                <circle class="pl-node" cx="60"  cy="80"  r="6" style="animation-delay:0s"/>
+                <circle class="pl-node" cx="60"  cy="120" r="6" style="animation-delay:0.2s"/>
+                <circle class="pl-node" cx="60"  cy="160" r="6" style="animation-delay:0.4s"/>
+                <circle class="pl-node" cx="60"  cy="200" r="6" style="animation-delay:0.6s"/>
+              </g>
+              <g fill="#c084fc" class="ng-pu">
+                <circle class="pl-node" cx="150" cy="60"  r="7" style="animation-delay:0.3s"/>
+                <circle class="pl-node" cx="150" cy="100" r="7" style="animation-delay:0.5s"/>
+                <circle class="pl-node" cx="150" cy="140" r="7" style="animation-delay:0.7s"/>
+                <circle class="pl-node" cx="150" cy="180" r="7" style="animation-delay:0.9s"/>
+                <circle class="pl-node" cx="150" cy="220" r="7" style="animation-delay:1.1s"/>
+                <circle class="pl-node" cx="250" cy="60"  r="7" style="animation-delay:0.4s"/>
+                <circle class="pl-node" cx="250" cy="100" r="7" style="animation-delay:0.6s"/>
+                <circle class="pl-node" cx="250" cy="140" r="7" style="animation-delay:0.8s"/>
+                <circle class="pl-node" cx="250" cy="180" r="7" style="animation-delay:1.0s"/>
+                <circle class="pl-node" cx="250" cy="220" r="7" style="animation-delay:1.2s"/>
+              </g>
+              <g fill="#ff7a59" class="ng-or">
+                <circle class="pl-node" cx="340" cy="100" r="6" style="animation-delay:0.7s"/>
+                <circle class="pl-node" cx="340" cy="140" r="6" style="animation-delay:0.9s"/>
+                <circle class="pl-node" cx="340" cy="180" r="6" style="animation-delay:1.1s"/>
+              </g>
+            </g>
+            <text x="60"  y="250" text-anchor="middle" fill="#5fa8ff" font-family="JetBrains Mono" font-size="9">in 13×48</text>
+            <text id="slide-arch-mid" x="200" y="250" text-anchor="middle" fill="#c084fc" font-family="JetBrains Mono" font-size="9">2× LSTM 128</text>
+            <text x="340" y="250" text-anchor="middle" fill="#ff7a59" font-family="JetBrains Mono" font-size="9">out 24h</text>
+          </svg>
+        </div>
+        <div class="slide-text">
+          <div class="slide-num">step 03 · learn</div>
+          <div class="slide-title">Train the <span class="ac" id="slide-train-name">LSTM</span></div>
+          <div class="slide-body" id="slide-train-body">A 2-layer recurrent network (hidden=128, dropout=0.2) learns to map 48 hours of weather features into the next 24 hours of temperature. Adam optimizer, MSE loss, early stopping when validation loss stops improving.</div>
+          <div class="slide-tags"><span class="slide-tag">PyTorch</span><span class="slide-tag" id="slide-train-rmse">~1.94°C RMSE</span><span class="slide-tag">residual target</span></div>
+        </div>
+      </div>
+
+      <!-- 4. WINDOW -->
+      <div class="pipeline-slide" data-i="3">
+        <div class="slide-viz">
+          <svg viewBox="0 0 400 280">
+            <!-- timeline base -->
+            <line class="nl" stroke="#5fa8ff" stroke-width="1.5" x1="20" y1="200" x2="380" y2="200" opacity="0.4"/>
+            <!-- ticks -->
+            <g stroke="#5fa8ff" stroke-width="1" opacity="0.4">
+              <line x1="60"  y1="195" x2="60"  y2="205"/>
+              <line x1="140" y1="195" x2="140" y2="205"/>
+              <line x1="220" y1="195" x2="220" y2="205"/>
+              <line x1="300" y1="195" x2="300" y2="205"/>
+            </g>
+            <!-- moving window group -->
+            <g class="pl-win">
+              <!-- input window (48h) -->
+              <rect class="nl ng-cy" x="60" y="80" width="160" height="120" rx="6" fill="rgba(95,168,255,0.08)" stroke="#5fa8ff" stroke-width="2"/>
+              <text x="140" y="72" text-anchor="middle" fill="#5fa8ff" font-family="JetBrains Mono" font-size="11" class="ng-cy">input · 48h</text>
+              <!-- output window (24h) -->
+              <rect class="nl ng-or" x="220" y="100" width="80" height="100" rx="6" fill="rgba(255,122,89,0.08)" stroke="#ff7a59" stroke-width="2"/>
+              <text x="260" y="92" text-anchor="middle" fill="#ff7a59" font-family="JetBrains Mono" font-size="11" class="ng-or">target · 24h</text>
+            </g>
+            <text x="200" y="240" text-anchor="middle" fill="#9aa8ff" font-family="JetBrains Mono" font-size="11">slide one hour, repeat → thousands of training windows</text>
+          </svg>
+        </div>
+        <div class="slide-text">
+          <div class="slide-num">step 04 · window</div>
+          <div class="slide-title">Slide a <span class="ac">window</span> across history</div>
+          <div class="slide-body">For every hour in the archive we cut a 48h input + 24h target pair, then chronologically split train/val (no leakage). The target is a <em>residual</em>, future temp minus the last input temp, so the model learns deltas, not absolute values.</div>
+          <div class="slide-tags"><span class="slide-tag">windows.py</span><span class="slide-tag">input=48</span><span class="slide-tag">output=24</span></div>
+        </div>
+      </div>
+
+      <!-- 5. PREDICT -->
+      <div class="pipeline-slide" data-i="4">
+        <div class="slide-viz">
+          <svg viewBox="0 0 400 280">
+            <line class="nl" stroke="#5fa8ff" stroke-width="1" x1="200" y1="40" x2="200" y2="240" stroke-dasharray="3 4" opacity="0.6"/>
+            <text x="200" y="32" text-anchor="middle" fill="#9aa8ff" font-family="JetBrains Mono" font-size="10">now</text>
+            <!-- past actual -->
+            <path class="nl pl-actual ng-cy" stroke="#5fa8ff" stroke-width="2.5" d="M20,180 Q60,160 90,165 T140,150 Q170,140 200,148"/>
+            <!-- forecast -->
+            <path class="nl pl-pred ng-or" stroke="#ff7a59" stroke-width="2.5" stroke-dasharray="4 5" d="M200,148 Q230,135 260,128 T320,122 Q360,118 380,128"/>
+            <circle cx="200" cy="148" r="5" fill="#ffd866" class="ng-yl"/>
+            <text x="100" y="218" text-anchor="middle" fill="#5fa8ff" font-family="JetBrains Mono" font-size="11" class="ng-cy">past 48h</text>
+            <text x="290" y="218" text-anchor="middle" fill="#ff7a59" font-family="JetBrains Mono" font-size="11" class="ng-or">forecast 24h</text>
+          </svg>
+        </div>
+        <div class="slide-text">
+          <div class="slide-num">step 05 · predict</div>
+          <div class="slide-title">Forecast the <span class="ac">next 24 hours</span></div>
+          <div class="slide-body">At inference: feed the last 48h of live samples through the trained model, get back 24 residual values, add the persistence baseline. Result is dumped to <code>forecast.json</code> for the dashboard to render.</div>
+          <div class="slide-tags"><span class="slide-tag">predict.py</span><span class="slide-tag">baseline + δ</span><span class="slide-tag">json out</span></div>
+        </div>
+      </div>
+
+      <!-- 6. EMAIL -->
+      <div class="pipeline-slide" data-i="5">
+        <div class="slide-viz">
+          <svg viewBox="0 0 400 280">
+            <!-- envelope (shape) -->
+            <g class="pl-env">
+              <g class="ng-pi" stroke="#ff5d8a" fill="rgba(255,93,138,0.08)" stroke-width="2">
+                <rect class="nl" x="0" y="0" width="80" height="55" rx="4"/>
+                <path class="nl" d="M0,2 L40,32 L80,2"/>
+              </g>
+              <text x="40" y="78" text-anchor="middle" fill="#ff5d8a" font-family="JetBrains Mono" font-size="10" class="ng-pi">daily summary</text>
+            </g>
+            <!-- recipient inbox -->
+            <g class="ng-pu" transform="translate(280,180)">
+              <rect class="nl" x="0" y="0" width="80" height="60" rx="6" stroke="#c084fc" stroke-width="2"/>
+              <line class="nl" x1="0" y1="18" x2="80" y2="18" stroke="#c084fc" stroke-width="1.5" opacity="0.6"/>
+              <line class="nl" x1="0" y1="32" x2="80" y2="32" stroke="#c084fc" stroke-width="1" opacity="0.4"/>
+              <line class="nl" x1="0" y1="46" x2="80" y2="46" stroke="#c084fc" stroke-width="1" opacity="0.4"/>
+              <text x="40" y="76" text-anchor="middle" fill="#c084fc" font-family="JetBrains Mono" font-size="10">inbox</text>
+            </g>
+          </svg>
+        </div>
+        <div class="slide-text">
+          <div class="slide-num">step 06 · notify</div>
+          <div class="slide-title">Email on <span class="ac">new records</span></div>
+          <div class="slide-body">Each tick compares the new sample to the running max and min. Whenever a fresh high or low is set, <code>main.py</code> assembles a record-break summary (delta, current conditions, dataset stats) and sends it via SMTP. No daily noise. Only the moments that actually matter.</div>
+          <div class="slide-tags"><span class="slide-tag">smtplib</span><span class="slide-tag">SSL · iCloud</span><span class="slide-tag">record-only</span></div>
+        </div>
+      </div>
+
+      <!-- 7. VISUALIZE -->
+      <div class="pipeline-slide" data-i="6">
+        <div class="slide-viz">
+          <svg viewBox="0 0 400 280">
+            <g transform="translate(200,140)">
+              <!-- outer orbit -->
+              <g class="pl-orbit">
+                <circle r="105" fill="none" stroke="#5fa8ff" stroke-width="0.8" stroke-dasharray="2 6" opacity="0.4" class="ng-cy"/>
+                <circle cx="105" cy="0" r="9" fill="#ff7a59" class="ng-or"/>
+                <circle cx="-105" cy="0" r="9" fill="#c084fc" class="ng-pu"/>
+                <circle cx="0" cy="105" r="9" fill="#5fa8ff" class="ng-cy"/>
+                <circle cx="0" cy="-105" r="9" fill="#6ee7a7" class="ng-gr"/>
+              </g>
+              <!-- inner orbit -->
+              <g class="pl-orbit-rev">
+                <circle r="55" fill="none" stroke="#c084fc" stroke-width="0.8" stroke-dasharray="2 5" opacity="0.5" class="ng-pu"/>
+                <circle cx="55" cy="0" r="6" fill="#ffd866" class="ng-yl"/>
+                <circle cx="-55" cy="0" r="6" fill="#ff5d8a" class="ng-pi"/>
+              </g>
+              <!-- core -->
+              <circle r="22" fill="rgba(255,122,89,0.15)" stroke="#ff7a59" stroke-width="2" class="ng-or"/>
+              <text y="5" text-anchor="middle" fill="#ff7a59" font-family="JetBrains Mono" font-size="11" font-weight="bold">live</text>
+            </g>
+          </svg>
+        </div>
+        <div class="slide-text">
+          <div class="slide-num">step 07 · visualize</div>
+          <div class="slide-title">Render <span class="ac">everything</span></div>
+          <div class="slide-body" id="slide-final-body">A static HTML page on GitHub Pages reads the JSON outputs and paints: live stats, max/min records, the rolling chart, the LSTM forecast, the neon weather scene, the 3D model viewer, and this slideshow.</div>
+          <div class="slide-tags"><span class="slide-tag">Chart.js</span><span class="slide-tag">three.js</span><span class="slide-tag">SVG + CSS</span></div>
+        </div>
+      </div>
+
+      <div class="pipeline-progress" id="pipeline-progress"></div>
+    </div>
+
+    <div class="pipeline-controls">
+      <button class="pipeline-btn" id="pipeline-prev" aria-label="prev"><i data-lucide="chevron-left"></i></button>
+      <div class="pipeline-dots" id="pipeline-dots"></div>
+      <button class="pipeline-btn" id="pipeline-next" aria-label="next"><i data-lucide="chevron-right"></i></button>
+    </div>
   </div>
 
   <footer>
@@ -160,14 +1010,82 @@ const fmtRel = iso => {
   return `${Math.round(diff/86400)}d ago`;
 };
 
+// ----- mouse tracking -----
+const cursorLight = document.getElementById('cursor-light');
+let mouseRAF = null;
+window.addEventListener('mousemove', (e) => {
+  if (mouseRAF) return;
+  mouseRAF = requestAnimationFrame(() => {
+    cursorLight.style.left = e.clientX + 'px';
+    cursorLight.style.top  = e.clientY + 'px';
+    mouseRAF = null;
+  });
+});
+
+function bindCardHover() {
+  document.querySelectorAll('.card').forEach(card => {
+    if (card.dataset.bound) return;
+    card.dataset.bound = '1';
+    card.addEventListener('mousemove', (e) => {
+      const r = card.getBoundingClientRect();
+      card.style.setProperty('--mx', (e.clientX - r.left) + 'px');
+      card.style.setProperty('--my', (e.clientY - r.top) + 'px');
+    });
+  });
+}
+
+// smooth count-up for value numbers
+function animateNumber(el, target, decimals = 1) {
+  if (target === null || target === undefined || isNaN(target)) { el.textContent = '—'; return; }
+  const dur = 900; const t0 = performance.now();
+  function tick(now) {
+    const p = Math.min(1, (now - t0) / dur);
+    const eased = 1 - Math.pow(1 - p, 3);
+    el.textContent = (target * eased).toFixed(decimals);
+    if (p < 1) requestAnimationFrame(tick);
+    else el.textContent = decimals === 0 ? Math.round(target).toString() : target.toFixed(decimals);
+  }
+  requestAnimationFrame(tick);
+}
+
+function refreshIcons() { if (window.lucide?.createIcons) lucide.createIcons(); }
+
+async function fetchOpenMeteo(loc) {
+  if (!loc || typeof loc.lat !== 'number' || typeof loc.lon !== 'number') return null;
+  const url = `https://api.open-meteo.com/v1/forecast?latitude=${loc.lat}&longitude=${loc.lon}&hourly=temperature_2m&forecast_days=2`;
+  try {
+    const r = await fetch(url);
+    if (!r.ok) return null;
+    const j = await r.json();
+    const t = j.hourly?.time || [];
+    const v = j.hourly?.temperature_2m || [];
+    const now = Date.now();
+    const cutoff = now + 24 * 3600 * 1000;
+    return t.map((ts, i) => ({ x: new Date(ts + 'Z'), y: v[i] }))
+            .filter(p => typeof p.y === 'number' && p.x.getTime() >= now && p.x.getTime() <= cutoff);
+  } catch { return null; }
+}
+
+let lastOpenMeteo = null;
+
 async function load() {
   const root = document.getElementById('root');
   const status = document.getElementById('status');
   try {
-    const res = await fetch(`outputs/weather.json?t=${Date.now()}`);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const state = await res.json();
-    render(state);
+    const [stateRes, fcstRes] = await Promise.all([
+      fetch(`outputs/weather.json?t=${Date.now()}`),
+      fetch(`outputs/forecast.json?t=${Date.now()}`).catch(() => null),
+    ]);
+    if (!stateRes.ok) throw new Error(`HTTP ${stateRes.status}`);
+    const state = await stateRes.json();
+    let forecast = null;
+    if (fcstRes && fcstRes.ok) {
+      try { forecast = await fcstRes.json(); } catch {}
+    }
+    lastState = state;
+    lastForecast = forecast;
+    lastOpenMeteo = await fetchOpenMeteo(state.location);
+    render(state, forecast);
     status.textContent = 'live';
   } catch (e) {
     root.innerHTML = `<div class="err">Failed to load <code>outputs/weather.json</code>: ${e.message}</div>`;
@@ -175,7 +1093,7 @@ async function load() {
   }
 }
 
-function render(state) {
+function render(state, forecast) {
   const history = (state.history || []).filter(e => typeof e?.data?.temperature === 'number');
   const latest = history[history.length - 1];
   const currentC = latest?.data?.temperature;
@@ -186,59 +1104,70 @@ function render(state) {
   const root = document.getElementById('root');
   root.innerHTML = `
     <div class="grid cards">
-      <div class="card">
-        <div class="icon">🌡️</div>
+      <div class="card neutral fade-in">
+        <div class="icon"><i data-lucide="thermometer"></i></div>
         <div class="label">Current</div>
-        <div class="value">${fmt(currentC)}°<span style="font-size:24px;color:var(--text-dim);">C</span></div>
+        <div class="value"><span data-num="${currentC}">${fmt(currentC)}</span>°<span style="font-size:24px;color:var(--text-dim);">C</span></div>
         <div class="sub">${fmt(cToF(currentC))}°F · ${fmtRel(latest?.timestamp)}</div>
       </div>
-      <div class="card hot">
-        <div class="icon">🔥</div>
+      <div class="card hot fade-in">
+        <div class="icon"><i data-lucide="flame"></i></div>
         <div class="label">Record High</div>
-        <div class="value">${fmt(maxC)}°<span style="font-size:24px;opacity:0.6;">C</span></div>
+        <div class="value"><span data-num="${maxC}">${fmt(maxC)}</span>°<span style="font-size:24px;opacity:0.6;">C</span></div>
         <div class="sub">${fmt(cToF(maxC))}°F</div>
       </div>
-      <div class="card cold">
-        <div class="icon">🥶</div>
+      <div class="card cold fade-in">
+        <div class="icon"><i data-lucide="snowflake"></i></div>
         <div class="label">Record Low</div>
-        <div class="value">${fmt(minC)}°<span style="font-size:24px;opacity:0.6;">C</span></div>
+        <div class="value"><span data-num="${minC}">${fmt(minC)}</span>°<span style="font-size:24px;opacity:0.6;">C</span></div>
         <div class="sub">${fmt(cToF(minC))}°F</div>
       </div>
-      <div class="card">
-        <div class="icon">📊</div>
+      <div class="card stats fade-in">
+        <div class="icon"><i data-lucide="bar-chart-3"></i></div>
         <div class="label">Samples</div>
-        <div class="value">${samples}</div>
+        <div class="value"><span data-num="${samples}" data-decimals="0">${samples}</span></div>
         <div class="sub">since ${fmtTime(state.start_time)}</div>
       </div>
     </div>
 
-    <div class="card chart-card">
+    <div class="card chart-card fade-in">
       <div class="chart-head">
-        <div class="chart-title">Temperature over time</div>
+        <div class="chart-title"><i data-lucide="activity"></i> Temperature over time</div>
         <div class="legend">
           <span class="ln">temp</span>
           <span class="max">record high</span>
           <span class="min">record low</span>
+          ${forecast ? '<span class="fcst">forecast (24h)</span>' : ''}
+          ${lastOpenMeteo ? '<span class="om">Open-Meteo forecast</span>' : ''}
         </div>
       </div>
       <div class="chart-wrap"><canvas id="chart"></canvas></div>
+      ${forecast ? `<div class="forecast-note">forecast generated ${fmtTime(forecast.generated_at)} · ${(MODEL_INFO[currentModel]?.fullName) || 'LSTM'} trained on 2y of history</div>` : ''}
+    </div>
+
+    <div class="card scene-card fade-in">
+      <div class="chart-head">
+        <div class="chart-title"><i data-lucide="cloud-sun"></i> Live scene</div>
+      </div>
+      <div class="scene" id="scene"></div>
+      <div class="scene-meta" id="scene-meta"></div>
     </div>
 
     <div class="lower">
-      <div class="card meta-card">
-        <h3>Recent samples</h3>
+      <div class="card meta-card fade-in">
+        <h3><i data-lucide="list"></i> Recent samples</h3>
         <div class="recent" id="recent"></div>
       </div>
-      <div class="card meta-card">
-        <h3>Stats</h3>
-        <div class="kv"><span class="k">Tracking since</span><span class="v">${fmtTime(state.start_time)}</span></div>
-        <div class="kv"><span class="k">Total samples</span><span class="v">${samples}</span></div>
-        <div class="kv"><span class="k">Latest reading</span><span class="v">${fmtTime(latest?.timestamp)}</span></div>
-        <div class="kv"><span class="k">Wind speed</span><span class="v">${latest?.data?.windspeed ?? '—'} km/h</span></div>
-        <div class="kv"><span class="k">Wind direction</span><span class="v">${latest?.data?.winddirection ?? '—'}°</span></div>
-        <div class="kv"><span class="k">Weather code</span><span class="v">${latest?.data?.weathercode ?? '—'}</span></div>
-        <div class="kv"><span class="k">Range (°C)</span><span class="v">${fmt(minC)} → ${fmt(maxC)}</span></div>
-        <div class="kv"><span class="k">Range (°F)</span><span class="v">${fmt(cToF(minC))} → ${fmt(cToF(maxC))}</span></div>
+      <div class="card meta-card fade-in">
+        <h3><i data-lucide="info"></i> Stats</h3>
+        <div class="kv"><span class="k"><i data-lucide="clock"></i>Tracking since</span><span class="v">${fmtTime(state.start_time)}</span></div>
+        <div class="kv"><span class="k"><i data-lucide="hash"></i>Total samples</span><span class="v">${samples}</span></div>
+        <div class="kv"><span class="k"><i data-lucide="radio"></i>Latest reading</span><span class="v">${fmtTime(latest?.timestamp)}</span></div>
+        <div class="kv"><span class="k"><i data-lucide="wind"></i>Wind speed</span><span class="v">${latest?.data?.windspeed ?? '—'} km/h</span></div>
+        <div class="kv"><span class="k"><i data-lucide="compass"></i>Wind direction</span><span class="v">${latest?.data?.winddirection ?? '—'}°</span></div>
+        <div class="kv"><span class="k"><i data-lucide="cloud"></i>Weather code</span><span class="v">${latest?.data?.weathercode ?? '—'}</span></div>
+        <div class="kv"><span class="k"><i data-lucide="thermometer"></i>Range (°C)</span><span class="v">${fmt(minC)} → ${fmt(maxC)}</span></div>
+        <div class="kv"><span class="k"><i data-lucide="thermometer"></i>Range (°F)</span><span class="v">${fmt(cToF(minC))} → ${fmt(cToF(maxC))}</span></div>
       </div>
     </div>
   `;
@@ -248,101 +1177,1307 @@ function render(state) {
     const t = e.data.temperature;
     const isMax = t === maxC;
     const isMin = t === minC;
-    const tag = isMax ? ' 🔥' : isMin ? ' 🥶' : '';
-    return `<div class="row"><span class="t">${fmtTime(e.timestamp)}</span><span class="temp">${fmt(t)}°C / ${fmt(cToF(t))}°F${tag}</span></div>`;
+    const tagIcon = isMax ? '<i data-lucide="flame"></i>' : isMin ? '<i data-lucide="snowflake"></i>' : '';
+    const cls = isMax ? 'is-max' : isMin ? 'is-min' : '';
+    return `<div class="row ${cls}"><span class="t">${fmtTime(e.timestamp)}</span><span class="temp">${tagIcon}${fmt(t)}°C / ${fmt(cToF(t))}°F</span></div>`;
   }).join('');
 
-  drawChart(history, maxC, minC);
+  document.querySelectorAll('.value [data-num]').forEach(el => {
+    const target = parseFloat(el.dataset.num);
+    const decimals = el.dataset.decimals !== undefined ? +el.dataset.decimals : 1;
+    animateNumber(el, target, decimals);
+  });
+
+  refreshIcons();
+  bindCardHover();
+  renderScene(latest);
+  drawChart(history, maxC, minC, forecast, lastOpenMeteo);
 }
 
-function drawChart(history, maxC, minC) {
-  const ctx = document.getElementById('chart').getContext('2d');
+function renderScene(latest) {
+  const scene = document.getElementById('scene');
+  const metaEl = document.getElementById('scene-meta');
+  if (!scene || !latest?.data) return;
+  const d = latest.data;
+  const time = new Date(latest.timestamp);
+  const h = time.getHours() + time.getMinutes() / 60;
+  const isDay = d.is_day === 1 || d.is_day === true;
+  const cloudCover = Math.max(0, Math.min(100, d.cloud_cover ?? 0));
+  const wind = d.windspeed ?? 0;
+  const wcode = d.weathercode ?? 0;
+
+  // NEON sky palette + celestial color by phase of day
+  // Each phase: dark bg gradient + bright neon accent for the celestial ring/horizon/mountains/clouds
+  let from, to, celestColor, celestCore, horizon, mountainStroke, cloudStroke, starsOpacity;
+  if (!isDay && (h < 5.5 || h > 19)) {
+    // deep night — cyan moon, magenta horizon
+    from = '#06081a'; to = '#1a0f3a'; starsOpacity = 1;
+    celestColor = '#9aa8ff'; celestCore = 'rgba(154,168,255,0.18)';
+    horizon = '#c084fc'; mountainStroke = '#5fa8ff'; cloudStroke = '#9aa8ff';
+  } else if (h >= 5.5 && h < 7.5) {
+    // sunrise — orange sun, pink horizon
+    from = '#1a0a3a'; to = '#ff7a59'; starsOpacity = 0.25;
+    celestColor = '#ff7a59'; celestCore = 'rgba(255,122,89,0.22)';
+    horizon = '#ffd866'; mountainStroke = '#ff5d8a'; cloudStroke = '#ffae72';
+  } else if (h >= 7.5 && h < 16) {
+    // day — yellow sun, cyan horizon
+    from = '#0a3a7a'; to = '#5fc8ff'; starsOpacity = 0;
+    celestColor = '#ffd866'; celestCore = 'rgba(255,216,102,0.22)';
+    horizon = '#5fa8ff'; mountainStroke = '#5fa8ff'; cloudStroke = '#c084fc';
+  } else if (h >= 16 && h < 18.5) {
+    // late afternoon → sunset — red sun
+    from = '#3a0a3a'; to = '#ff5d5d'; starsOpacity = 0.1;
+    celestColor = '#ff5d5d'; celestCore = 'rgba(255,93,93,0.22)';
+    horizon = '#ff7a59'; mountainStroke = '#c084fc'; cloudStroke = '#ff7a59';
+  } else {
+    // dusk — purple
+    from = '#0a0420'; to = '#5d2a8f'; starsOpacity = 0.55;
+    celestColor = '#c084fc'; celestCore = 'rgba(192,132,252,0.22)';
+    horizon = '#ff5d8a'; mountainStroke = '#c084fc'; cloudStroke = '#5fa8ff';
+  }
+
+  // celestial position: full arc — body actually rises from below horizon and sets below it.
+  // horizon is at top: 72% (CSS .scene::after bottom: 28%).
+  let frac;
+  if (isDay) {
+    // sun: rises ~5, sets ~19
+    frac = (h - 5) / 14;
+  } else {
+    // moon: rises ~18, sets next morning ~7
+    let nh = h < 7 ? h + 24 : h;
+    frac = (nh - 18) / 13;
+  }
+  const sunX = 5 + Math.max(-0.05, Math.min(1.05, frac)) * 90;
+  // sin curve: at frac=0 or 1 → sunY=72 (horizon). Beyond → below horizon. Peak at frac=0.5 → sunY=10.
+  const sunY = 72 - Math.sin(frac * Math.PI) * 62;
+  // hide once it's actually below the horizon
+  let celestOpacity = sunY > 72 ? 0 : 1;
+  // dim the sun/moon when heavily clouded — gloom factor
+  const gloom = Math.min(0.6, (cloudCover / 100) * 0.65);
+  celestOpacity *= (1 - gloom * 0.7);
+
+  scene.style.setProperty('--sky-from', from);
+  scene.style.setProperty('--sky-to', to);
+  scene.style.setProperty('--celestial-color', celestColor);
+  scene.style.setProperty('--celestial-core', celestCore);
+  scene.style.setProperty('--horizon', horizon);
+  scene.style.setProperty('--mountain-stroke', mountainStroke);
+  scene.style.setProperty('--cloud-stroke', cloudStroke);
+  scene.style.setProperty('--sun-x', sunX + '%');
+  scene.style.setProperty('--sun-y', sunY + '%');
+  scene.style.setProperty('--stars-opacity', starsOpacity);
+  scene.style.setProperty('--celestial-opacity', celestOpacity.toFixed(2));
+  scene.style.setProperty('--gloom', gloom.toFixed(2));
+
+  // stars (deterministic positions so they don't jump on re-render)
+  const stars = Array.from({length: 36}, (_, i) => {
+    const x = (i * 137 + 23) % 100;
+    const y = (i * 53 + 11) % 65;
+    const delay = (i % 7) * 0.4;
+    return `<div class="star" style="left:${x}%; top:${y}%; animation-delay:${delay}s;"></div>`;
+  }).join('');
+
+  // mountains as outlined neon strokes (back layer + front layer)
+  const mountains = `<svg class="mountains" viewBox="0 0 1000 200" preserveAspectRatio="none">
+    <path class="back" d="M0,200 L0,150 L100,90 L210,130 L320,70 L450,125 L580,85 L700,120 L840,65 L940,100 L1000,85 L1000,200 Z" />
+    <path d="M0,200 L0,170 L120,130 L240,160 L380,115 L520,150 L660,110 L800,140 L920,115 L1000,130 L1000,200 Z" />
+  </svg>`;
+
+  // clouds: count proportional to cloud_cover (more aggressive — overcast should feel overcast)
+  const cloudCount = Math.round(Math.pow(cloudCover / 100, 0.75) * 18);
+  const cloudPath = "M5,18 Q5,6 18,8 Q22,2 32,5 Q44,1 50,10 Q62,8 62,18 Q62,24 52,24 L14,24 Q5,24 5,18 Z";
+  // wind speeds clouds up: light wind ~60s drift, gale ~6s
+  const cloudBaseSpeed = Math.max(6, 65 - wind * 0.8);
+  const clouds = Array.from({length: cloudCount}, (_, i) => {
+    const top = 5 + ((i * 9 + 7) % 35);
+    const w = 70 + ((i * 31) % 70);
+    const speed = (cloudBaseSpeed + ((i * 17) % 25)).toFixed(1);
+    const delay = -((i * 7) % 60);
+    return `<div class="cloud" style="--top:${top}%; --w:${w}px; --h:${Math.max(20, w/3)}px; --speed:${speed}s; --delay:${delay}s;">
+      <svg viewBox="0 0 65 30" preserveAspectRatio="none"><path d="${cloudPath}"/></svg>
+    </div>`;
+  }).join('');
+
+  // trees: trunk bends downwind in gusts, leaves flutter independently
+  // bend amount scales aggressively with wind (light air barely moves; gale really pushes)
+  const swayDeg = Math.min(22, 1 + Math.pow(wind, 0.85) * 0.9);
+  const baseSpeed = Math.max(0.55, 4.2 - wind * 0.07);
+  const treeXs = [10, 28, 46, 64, 82];
+  const snowCodesForTrees = [71,73,75,77,85,86];
+  const treeSnowy = snowCodesForTrees.includes(wcode);
+  const trees = treeXs.map((x, i) => {
+    const scale = 0.75 + (i % 3) * 0.18;
+    const speed = (baseSpeed + (i % 3) * 0.25).toFixed(2);
+    const delay = (-((i * 0.37) % 1) * baseSpeed).toFixed(2);
+    // a few short white strokes layered on top to look like snow on branches
+    const frost = treeSnowy
+      ? `<path class="frost" d="M5,40 L13,40 M22,40 L32,40 M9,52 L18,52 M19,52 L28,52 M14,30 L22,30" />`
+      : '';
+    return `<div class="tree ${treeSnowy ? 'snowy' : ''}" style="--x:${x}%; --sway-deg:${swayDeg}deg; --sway-speed:${speed}s; --sway-delay:${delay}s; --scale:${scale};">
+      <div class="bend">
+        <svg viewBox="0 0 36 80">
+          <path class="trunk-line" d="M18,80 L18,42 M18,60 L11,52 M18,55 L25,46" />
+          <g class="crown">
+            <path class="leaves-line" d="M18,8 L4,40 L13,40 L8,52 L18,52 L18,42 L18,52 L28,52 L23,40 L32,40 Z" />
+            ${frost}
+          </g>
+        </svg>
+      </div>
+    </div>`;
+  }).join('');
+
+  // weather effects: rain or snow (heavy variants get many more particles + lightning for storms)
+  let effects = '';
+  let storm = '';
+  const rainCodes = [51,53,55,56,57,61,63,65,66,67,80,81,82,95,96,99];
+  const snowCodes = [71,73,75,77,85,86];
+  const heavyRainCodes = [65,67,82,95,96,99];
+  const heavySnowCodes = [75,77,86];
+  const stormCodes = [95,96,99];
+  if (rainCodes.includes(wcode)) {
+    const heavy = heavyRainCodes.includes(wcode);
+    const count = heavy ? 240 : 80;
+    effects = Array.from({length: count}, (_, i) => {
+      const left = (i * 13.7 + 5) % 100;
+      const dur = ((heavy ? 0.25 : 0.4) + ((i * 7) % 50) / 100).toFixed(2);
+      const delay = (-((i * 3) % 100) / 100).toFixed(2);
+      return `<div class="rain" style="left:${left}%; animation-duration:${dur}s; animation-delay:${delay}s;"></div>`;
+    }).join('');
+  } else if (snowCodes.includes(wcode)) {
+    const heavy = heavySnowCodes.includes(wcode);
+    const count = heavy ? 220 : 80;
+    effects = Array.from({length: count}, (_, i) => {
+      const left = (i * 7.3 + 3) % 100;
+      const dur = ((heavy ? 1.6 : 3) + ((i * 11) % 30) / 10).toFixed(2);
+      const delay = (-((i * 5) % 60) / 10).toFixed(2);
+      return `<div class="snow" style="left:${left}%; animation-duration:${dur}s; animation-delay:${delay}s;"></div>`;
+    }).join('');
+  }
+  // fog: weathercodes 45 (fog) and 48 (depositing rime fog)
+  let fog = '';
+  if (wcode === 45 || wcode === 48) {
+    const bands = 7;
+    fog = Array.from({length: bands}, (_, i) => {
+      const top = 38 + i * 7 + ((i * 13) % 5);
+      const speed = 22 + ((i * 11) % 18);
+      const delay = -((i * 5) % 20);
+      const dir = i % 2 === 0 ? 1 : -1;
+      return `<div class="fog" style="--fog-top:${top}%; --fog-speed:${speed}s; --fog-delay:${delay}s; transform:scaleX(${dir});"></div>`;
+    }).join('');
+  }
+  if (stormCodes.includes(wcode)) {
+    const boltX = 30 + ((wcode * 7) % 40);
+    storm = `
+      <div class="lightning" style="--bolt-x:${boltX}%;"></div>
+      <svg class="bolt" style="--bolt-x:${boltX}%;" viewBox="0 0 36 100" preserveAspectRatio="none">
+        <path d="M20,0 L8,40 L18,42 L6,100 L26,52 L14,50 L24,12 Z" />
+      </svg>
+    `;
+  }
+
+  scene.innerHTML = `
+    <div class="stars">${stars}</div>
+    <div class="celestial"></div>
+    ${clouds}
+    <div class="gloom"></div>
+    ${mountains}
+    ${effects}
+    ${fog}
+    ${storm}
+    ${trees}
+    <div class="grid-floor"></div>
+  `;
+
+  // meta line under the scene
+  const phase = !isDay ? 'night' :
+                h < 7.5 ? 'sunrise' :
+                h < 16 ? 'day' :
+                h < 18.5 ? 'late afternoon' : 'sunset';
+  // Prefer cloud_cover % for cloudiness wording — weathercode 1/2/3 sometimes
+  // says "partly cloudy" while cloud_cover is 0%. Only use weathercode for
+  // distinctly different conditions (rain/snow/fog/storm).
+  const wcLabel = rainCodes.includes(wcode) ? 'rain' :
+                  snowCodes.includes(wcode) ? 'snow' :
+                  (wcode === 45 || wcode === 48) ? 'fog' :
+                  cloudCover < 10 ? 'clear' :
+                  cloudCover < 30 ? 'mostly clear' :
+                  cloudCover < 70 ? 'partly cloudy' : 'overcast';
+  if (metaEl) {
+    metaEl.innerHTML = `
+      <span><i data-lucide="sun"></i> ${phase}</span>
+      <span><i data-lucide="cloud"></i> ${cloudCover}% cloud</span>
+      <span><i data-lucide="wind"></i> ${wind} km/h</span>
+      <span><i data-lucide="cloud-rain"></i> ${wcLabel}</span>
+    `;
+    refreshIcons();
+  }
+}
+
+function drawChart(history, maxC, minC, forecast, openMeteo) {
+  const canvas = document.getElementById('chart');
+  const ctx = canvas.getContext('2d');
   const data = history.map(e => ({ x: new Date(e.timestamp), y: e.data.temperature }));
   const grad = ctx.createLinearGradient(0, 0, 0, 420);
-  grad.addColorStop(0, 'rgba(255,122,89,0.35)');
+  grad.addColorStop(0, 'rgba(255,122,89,0.45)');
   grad.addColorStop(1, 'rgba(255,122,89,0)');
 
-  new Chart(ctx, {
+  const glow = {
+    id: 'glow',
+    beforeDatasetDraw(chart, args) {
+      const c = chart.ctx;
+      const ds = chart.data.datasets[args.index];
+      c.save();
+      c.shadowColor = ds.borderColor;
+      c.shadowBlur = ds.borderDash ? 12 : 16;
+    },
+    afterDatasetDraw(chart) { chart.ctx.restore(); }
+  };
+
+  const recordLines = {
+    id: 'recordLines',
+    afterDraw(chart) {
+      const { ctx, chartArea: { left, right }, scales: { y } } = chart;
+      ctx.save();
+      ctx.setLineDash([4, 4]);
+      ctx.lineWidth = 1;
+      if (typeof maxC === 'number') {
+        const yMax = y.getPixelForValue(maxC);
+        ctx.strokeStyle = 'rgba(255,93,93,0.6)';
+        ctx.shadowColor = 'rgba(255,93,93,0.8)'; ctx.shadowBlur = 6;
+        ctx.beginPath(); ctx.moveTo(left, yMax); ctx.lineTo(right, yMax); ctx.stroke();
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = '#ff5d5d'; ctx.font = '11px Inter';
+        ctx.fillText(`max ${maxC}°C`, left + 6, yMax - 4);
+      }
+      if (typeof minC === 'number') {
+        const yMin = y.getPixelForValue(minC);
+        ctx.strokeStyle = 'rgba(95,182,255,0.6)';
+        ctx.shadowColor = 'rgba(95,182,255,0.8)'; ctx.shadowBlur = 6;
+        ctx.beginPath(); ctx.moveTo(left, yMin); ctx.lineTo(right, yMin); ctx.stroke();
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = '#5fb6ff'; ctx.font = '11px Inter';
+        ctx.fillText(`min ${minC}°C`, left + 6, yMin + 14);
+      }
+      ctx.restore();
+    }
+  };
+
+  const crosshair = {
+    id: 'crosshair',
+    afterDraw(chart) {
+      if (!chart._mouse) return;
+      const { ctx, chartArea: { top, bottom, left, right } } = chart;
+      const x = chart._mouse.x;
+      if (x < left || x > right) return;
+      ctx.save();
+      ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+      ctx.setLineDash([3, 4]); ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(x, top); ctx.lineTo(x, bottom); ctx.stroke();
+      ctx.restore();
+    }
+  };
+
+  const datasets = [{
+    label: 'Temp °C', data,
+    borderColor: '#ff7a59', backgroundColor: grad,
+    borderWidth: 2.5, tension: 0.35,
+    pointRadius: 0, pointHoverRadius: 6,
+    pointHoverBackgroundColor: '#ff7a59', pointHoverBorderColor: '#fff', pointHoverBorderWidth: 2,
+    fill: true,
+  }];
+
+  if (forecast && forecast.predictions?.length) {
+    const lastActual = data[data.length - 1];
+    const fcData = forecast.predictions.map(p => ({ x: new Date(p.timestamp), y: p.temperature }));
+    if (lastActual) fcData.unshift(lastActual);
+    datasets.push({
+      label: 'Forecast', data: fcData,
+      borderColor: '#c084fc', backgroundColor: 'rgba(192,132,252,0.08)',
+      borderWidth: 2, borderDash: [6, 4], tension: 0.3,
+      pointRadius: 0, pointHoverRadius: 5,
+      pointHoverBackgroundColor: '#c084fc', pointHoverBorderColor: '#fff', pointHoverBorderWidth: 2,
+      fill: false,
+    });
+  }
+
+  if (openMeteo && openMeteo.length) {
+    datasets.push({
+      label: 'Open-Meteo', data: openMeteo,
+      borderColor: '#5fb6ff', backgroundColor: 'rgba(95,182,255,0.06)',
+      borderWidth: 2, borderDash: [2, 4], tension: 0.3,
+      pointRadius: 0, pointHoverRadius: 5,
+      pointHoverBackgroundColor: '#5fb6ff', pointHoverBorderColor: '#fff', pointHoverBorderWidth: 2,
+      fill: false,
+    });
+  }
+
+  const chart = new Chart(ctx, {
+    type: 'line',
+    data: { datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'nearest', axis: 'x', intersect: false },
+      animation: { duration: 800, easing: 'easeOutQuart' },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: 'rgba(13,16,24,0.96)', borderColor: 'rgba(255,255,255,0.12)', borderWidth: 1, padding: 12,
+          titleColor: '#e9edf5', bodyColor: '#e9edf5', titleFont: { weight: 600 },
+          callbacks: { label: c => `${c.parsed.y.toFixed(1)}°C / ${cToF(c.parsed.y).toFixed(1)}°F` }
+        },
+      },
+      scales: {
+        x: { type: 'time',
+             time: { tooltipFormat: 'PP HH:mm', displayFormats: { hour: 'MMM d HH:mm', day: 'MMM d' } },
+             grid: { color: 'rgba(255,255,255,0.04)' },
+             ticks: { color: '#8b94a8', maxRotation: 0, autoSkip: true, maxTicksLimit: 8 },
+             border: { color: 'rgba(255,255,255,0.08)' } },
+        y: { grid: { color: 'rgba(255,255,255,0.04)' },
+             ticks: { color: '#8b94a8', callback: v => v + '°C' },
+             border: { color: 'rgba(255,255,255,0.08)' } }
+      }
+    },
+    plugins: [glow, recordLines, crosshair]
+  });
+
+  let chartRAF = null;
+  canvas.addEventListener('mousemove', (e) => {
+    const r = canvas.getBoundingClientRect();
+    chart._mouse = { x: e.clientX - r.left, y: e.clientY - r.top };
+    if (!chartRAF) chartRAF = requestAnimationFrame(() => { chart.draw(); chartRAF = null; });
+  });
+  canvas.addEventListener('mouseleave', () => { chart._mouse = null; chart.draw(); });
+  canvas.style.cursor = 'crosshair';
+}
+
+load();
+setInterval(load, 5 * 60 * 1000);
+
+// ---- Per-model display info: drives header label, model card, slideshow, 3D viz ----
+const MODEL_INFO = {
+  lstm: {
+    fullName: 'LSTM',
+    label: '2-layer LSTM · hidden=128 · dropout=0.2',
+    bodyText: 'A 2-layer recurrent network (hidden=128, dropout=0.2) learns to map 48 hours of weather features into the next 24 hours of temperature. Adam optimizer, MSE loss, early stopping when validation loss stops improving.',
+    midTag: '2× LSTM 128',
+    nodeLabels: [['Input','13 features × 48h'],['LSTM 1','128 hidden'],['LSTM 2','128 hidden'],['Output','24h forecast']],
+    layers: [
+      { count: 13,  x: -9, color: 0xff7a59, radius: 3.2 },
+      { count: 128, x: -3, color: 0xffa37a, radius: 4.6 },
+      { count: 128, x:  3, color: 0x5fa8ff, radius: 4.6 },
+      { count: 24,  x:  9, color: 0xc084fc, radius: 3.4 },
+    ],
+    recurrent: [1, 2],
+    sampleK: [6, 4, 6],
+  },
+  gru: {
+    fullName: 'GRU',
+    label: '2-layer GRU · hidden=128 · dropout=0.2',
+    bodyText: 'A 2-layer gated recurrent network (hidden=128, dropout=0.2) — like LSTM but with fewer gates. Maps 48 hours of weather features into the next 24 hours of temperature. Adam optimizer, MSE loss, early stopping.',
+    midTag: '2× GRU 128',
+    nodeLabels: [['Input','13 features × 48h'],['GRU 1','128 hidden'],['GRU 2','128 hidden'],['Output','24h forecast']],
+    layers: [
+      { count: 13,  x: -9, color: 0xff7a59, radius: 3.2 },
+      { count: 128, x: -3, color: 0x6ee7a7, radius: 4.6 },
+      { count: 128, x:  3, color: 0x5fa8ff, radius: 4.6 },
+      { count: 24,  x:  9, color: 0xc084fc, radius: 3.4 },
+    ],
+    recurrent: [1, 2],
+    sampleK: [6, 4, 6],
+  },
+  mlp: {
+    fullName: 'MLP',
+    label: 'MLP · 256 hidden × 2 · dropout=0.2',
+    bodyText: 'A flat fully-connected network: the 48h × 13-feature window is flattened into a single 624-dim vector, passed through two ReLU + dropout layers of 256 units, then projected to 24 hourly outputs.',
+    midTag: 'Dense 256 × 2',
+    nodeLabels: [['Input','13 × 48 = 624'],['Dense 1','256 hidden'],['Dense 2','256 hidden'],['Output','24h forecast']],
+    layers: [
+      { count: 24,  x: -9, color: 0xff7a59, radius: 3.6 },
+      { count: 64,  x: -3, color: 0xffa37a, radius: 4.6 },
+      { count: 64,  x:  3, color: 0x5fa8ff, radius: 4.6 },
+      { count: 24,  x:  9, color: 0xc084fc, radius: 3.4 },
+    ],
+    recurrent: [],
+    sampleK: [4, 3, 4],
+  },
+  tcn: {
+    fullName: 'TCN',
+    label: 'Dilated TCN · 4 layers · 64 channels · dropout=0.2',
+    bodyText: 'A stack of 1D convolutions with growing dilation (1, 2, 4, 8). Each layer sees an exponentially wider slice of the input window, capturing both short and long-range patterns without recurrence.',
+    midTag: 'TCN 64ch · d=1,2,4,8',
+    nodeLabels: [['Input','13 features × 48h'],['Conv d=1,2','64 ch'],['Conv d=4,8','64 ch'],['Output','24h forecast']],
+    layers: [
+      { count: 13,  x: -9, color: 0xff7a59, radius: 3.2 },
+      { count: 64,  x: -3, color: 0xffa37a, radius: 4.6 },
+      { count: 64,  x:  3, color: 0xffd866, radius: 4.6 },
+      { count: 24,  x:  9, color: 0xc084fc, radius: 3.4 },
+    ],
+    recurrent: [],
+    dilatedArcs: [1, 2],
+    sampleK: [5, 3, 5],
+  },
+  ensemble: {
+    fullName: 'Ensemble',
+    label: 'Ensemble · mean of LSTM + GRU + MLP + TCN',
+    bodyText: 'A simple averaging ensemble: every base model runs on the same input window and their 24h predictions are averaged element-wise. Diverse error patterns cancel out, giving a lower validation RMSE than any single member.',
+    midTag: 'mean(LSTM, GRU, MLP, TCN)',
+    nodeLabels: [['Input','13 features × 48h'],['Base models','LSTM · GRU · MLP · TCN'],['Mean','element-wise avg'],['Output','24h forecast']],
+    layers: [
+      { count: 13, x: -9, color: 0xff7a59, radius: 3.2 },
+      { count: 4,  x: -3, color: 0xc084fc, radius: 5.4 },
+      { count: 1,  x:  3, color: 0xffffff, radius: 6.0 },
+      { count: 24, x:  9, color: 0xc084fc, radius: 3.4 },
+    ],
+    recurrent: [],
+    sampleK: [4, 4, 4],
+  },
+};
+
+// ---- Compare panel (only works when running with python ml/serve.py) ----
+let compareChart = null;
+let compareRange = null;
+let historyData = null;
+let availableModels = [];
+let currentModel = 'lstm';
+let lastAnchorIso = null;
+let lastState = null;
+let lastForecast = null;
+
+async function setActiveModel(name) {
+  if (!MODEL_INFO[name]) return;
+  currentModel = name;
+  const info = MODEL_INFO[name];
+
+  // sync the two pickers
+  const gp = document.getElementById('global-model');
+  if (gp && gp.value !== name) gp.value = name;
+  const cp = document.getElementById('compare-model');
+  if (cp && cp.value !== name) cp.value = name;
+
+  // header tag next to "Model architecture"
+  const tag = document.getElementById('model-arch-tag');
+  if (tag) {
+    const m = availableModels.find(x => x.name === name);
+    const rmse = (m && m.best_val_rmse_c != null) ? `· val RMSE ${m.best_val_rmse_c.toFixed(2)}°C` : '';
+    tag.textContent = rmse;
+  }
+
+  // model-card description + node labels
+  const sub = document.getElementById('model-sub');
+  if (sub) sub.textContent = info.label + ' · predicts residual over next 24h';
+  const labels = document.getElementById('model-labels');
+  if (labels) labels.innerHTML = info.nodeLabels.map(([n, t]) => `<span><b>${n}</b>${t}</span>`).join('');
+
+  // 3D viz
+  rebuildNeural(name);
+
+  // slideshow patches
+  const sName = document.getElementById('slide-train-name');
+  if (sName) sName.textContent = info.fullName;
+  const sBody = document.getElementById('slide-train-body');
+  if (sBody) sBody.textContent = info.bodyText;
+  const sMid = document.getElementById('slide-arch-mid');
+  if (sMid) sMid.textContent = info.midTag;
+  const sFinal = document.getElementById('slide-final-body');
+  if (sFinal) sFinal.textContent = `A static HTML page on GitHub Pages reads the JSON outputs and paints: live stats, max/min records, the rolling chart, the ${info.fullName} forecast, the neon weather scene, the 3D model viewer, and this slideshow.`;
+  const sRmse = document.getElementById('slide-train-rmse');
+  if (sRmse) {
+    const m = availableModels.find(x => x.name === name);
+    sRmse.textContent = (m && m.best_val_rmse_c != null) ? `~${m.best_val_rmse_c.toFixed(2)}°C RMSE` : '~1.94°C RMSE';
+  }
+
+  // re-run compare strand at current anchor
+  if (lastAnchorIso) runCompareAt(lastAnchorIso);
+
+  // re-fetch the live forecast against the new model (if serve.py is running)
+  if (lastState && lastState.history && lastState.history.length) {
+    try {
+      const lastT = lastState.history[lastState.history.length - 1].timestamp;
+      const r = await fetch(`/api/predict?datetime=${encodeURIComponent(lastT)}&model=${name}`);
+      if (r.ok) {
+        const d = await r.json();
+        if (!d.error && d.predicted) {
+          lastForecast = {
+            generated_at: new Date().toISOString(),
+            input_last_timestamp: lastT,
+            predictions: d.predicted,
+            model: name,
+          };
+          render(lastState, lastForecast);
+        }
+      }
+    } catch {}
+  }
+}
+
+async function initModels() {
+  // wire the global header picker if /api/models is reachable
+  try {
+    const r = await fetch('/api/models');
+    if (!r.ok) throw new Error();
+    const m = await r.json();
+    availableModels = m.models;
+    currentModel = m.default || 'lstm';
+  } catch {
+    // serve.py not running — keep defaults, hide global picker
+    setActiveModel('lstm');
+    return;
+  }
+  const picker = document.getElementById('global-picker');
+  const sel = document.getElementById('global-model');
+  sel.innerHTML = '';
+  availableModels.forEach(mm => {
+    const opt = document.createElement('option');
+    opt.value = mm.name;
+    const rmse = (mm.best_val_rmse_c != null) ? ` · ${mm.best_val_rmse_c.toFixed(2)}°C` : '';
+    opt.textContent = `${mm.name}${rmse}`;
+    if (mm.name === currentModel) opt.selected = true;
+    sel.appendChild(opt);
+  });
+  sel.addEventListener('change', e => setActiveModel(e.target.value));
+  picker.classList.add('shown');
+  refreshIcons();
+  setActiveModel(currentModel);
+}
+
+async function initCompare() {
+  try {
+    const [rangeRes, histRes] = await Promise.all([
+      fetch('/api/range'),
+      fetch('/api/history?step=3'),
+    ]);
+    if (!rangeRes.ok || !histRes.ok) throw new Error();
+    compareRange = await rangeRes.json();
+    const hist = await histRes.json();
+    historyData = hist.points.map(p => ({ x: new Date(p.timestamp), y: p.temperature }));
+  } catch {
+    return;
+  }
+  document.getElementById('compare-panel').style.display = '';
+  refreshIcons();
+  bindCardHover();
+  drawCompareBase();
+  initShowdown();
+
+  document.getElementById('compare-rand').addEventListener('click', () => {
+    if (!compareRange.earliest_anchor) return;
+    const lo = new Date(compareRange.earliest_anchor).getTime();
+    const hi = new Date(compareRange.last).getTime();
+    const t = new Date(lo + Math.random() * (hi - lo));
+    runCompareAt(t.toISOString());
+  });
+  document.getElementById('compare-clear').addEventListener('click', () => {
+    compareChart.data.datasets = compareChart.data.datasets.slice(0, 1);
+    compareChart.update();
+    document.getElementById('compare-metrics').innerHTML = '';
+    lastAnchorIso = null;
+  });
+}
+
+function drawCompareBase() {
+  const canvas = document.getElementById('compare-chart');
+  const ctx = canvas.getContext('2d');
+  if (compareChart) compareChart.destroy();
+
+  const lastT = new Date(compareRange.last).getTime();
+  const xMax = lastT + 24 * 3600 * 1000;
+
+  const invalidShade = {
+    id: 'invalidShade',
+    beforeDatasetsDraw(chart) {
+      if (!compareRange.earliest_anchor) return;
+      const xLeft = chart.scales.x.left;
+      const xCutoff = chart.scales.x.getPixelForValue(new Date(compareRange.earliest_anchor).getTime());
+      const top = chart.chartArea.top;
+      const bottom = chart.chartArea.bottom;
+      if (xCutoff <= xLeft) return;
+      const c = chart.ctx;
+      c.save();
+      c.fillStyle = 'rgba(255,255,255,0.04)';
+      c.fillRect(xLeft, top, xCutoff - xLeft, bottom - top);
+      c.strokeStyle = 'rgba(255,255,255,0.18)'; c.setLineDash([4, 4]);
+      c.beginPath(); c.moveTo(xCutoff, top); c.lineTo(xCutoff, bottom); c.stroke();
+      c.fillStyle = '#8b94a8'; c.font = '11px Inter'; c.setLineDash([]);
+      c.fillText('not enough history yet', xLeft + 8, top + 16);
+      c.fillText('clickable range →', xCutoff + 8, top + 16);
+      c.restore();
+    }
+  };
+
+  const crosshair = {
+    id: 'crosshair2',
+    afterDraw(chart) {
+      if (!chart._mouse) return;
+      const { ctx, chartArea: { top, bottom, left, right } } = chart;
+      const x = chart._mouse.x;
+      if (x < left || x > right) return;
+      ctx.save();
+      ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.setLineDash([3, 4]); ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(x, top); ctx.lineTo(x, bottom); ctx.stroke();
+      ctx.restore();
+    }
+  };
+
+  const glow = {
+    id: 'glow2',
+    beforeDatasetDraw(chart, args) {
+      const c = chart.ctx;
+      const ds = chart.data.datasets[args.index];
+      c.save();
+      c.shadowColor = ds.borderColor;
+      c.shadowBlur = ds.borderDash ? 12 : 14;
+    },
+    afterDatasetDraw(chart) { chart.ctx.restore(); }
+  };
+
+  compareChart = new Chart(ctx, {
     type: 'line',
     data: {
       datasets: [{
-        label: 'Temp °C',
-        data,
-        borderColor: '#ff7a59',
-        backgroundColor: grad,
-        borderWidth: 2.5,
-        tension: 0.35,
-        pointRadius: 2,
-        pointHoverRadius: 6,
-        pointBackgroundColor: '#ff7a59',
-        pointBorderColor: '#fff',
-        pointBorderWidth: 1,
+        label: 'History', data: historyData,
+        borderColor: '#5fa8ff', backgroundColor: 'rgba(95,168,255,0.08)',
+        borderWidth: 1.4, tension: 0.2,
+        pointRadius: 0, pointHoverRadius: 4, pointHitRadius: 12,
         fill: true,
       }]
     },
     options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      interaction: { mode: 'index', intersect: false },
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'nearest', axis: 'x', intersect: false },
+      animation: { duration: 600, easing: 'easeOutQuart' },
+      onClick: (evt, _els, chart) => {
+        const x = chart.scales.x.getValueForPixel(evt.x);
+        if (x == null) return;
+        const earliest = compareRange.earliest_anchor ? new Date(compareRange.earliest_anchor).getTime() : -Infinity;
+        const latest = new Date(compareRange.last).getTime();
+        const clamped = Math.min(Math.max(x, earliest), latest);
+        runCompareAt(new Date(clamped).toISOString());
+      },
       plugins: {
         legend: { display: false },
         tooltip: {
-          backgroundColor: '#0d1018',
-          borderColor: 'rgba(255,255,255,0.12)',
-          borderWidth: 1,
-          padding: 12,
-          titleColor: '#e9edf5',
-          bodyColor: '#8b94a8',
-          callbacks: {
-            label: c => `${c.parsed.y.toFixed(1)}°C / ${cToF(c.parsed.y).toFixed(1)}°F`,
-          }
-        },
-        annotation: {}
+          backgroundColor: 'rgba(13,16,24,0.96)', borderColor: 'rgba(255,255,255,0.12)', borderWidth: 1, padding: 12,
+          titleColor: '#e9edf5', bodyColor: '#e9edf5',
+          callbacks: { label: c => `${c.dataset.label}: ${c.parsed.y.toFixed(1)}°C` }
+        }
       },
       scales: {
-        x: {
-          type: 'time',
-          time: { tooltipFormat: 'PP HH:mm', displayFormats: { hour: 'MMM d HH:mm', day: 'MMM d' } },
-          grid: { color: 'rgba(255,255,255,0.04)' },
-          ticks: { color: '#8b94a8', maxRotation: 0, autoSkip: true, maxTicksLimit: 8 },
-          border: { color: 'rgba(255,255,255,0.08)' },
-        },
-        y: {
-          grid: { color: 'rgba(255,255,255,0.04)' },
-          ticks: { color: '#8b94a8', callback: v => v + '°C' },
-          border: { color: 'rgba(255,255,255,0.08)' },
-        }
+        x: { type: 'time', max: xMax,
+             time: { tooltipFormat: 'PP HH:mm', displayFormats: { hour: 'MMM d', day: 'MMM d', month: 'MMM yyyy' } },
+             grid: { color: 'rgba(255,255,255,0.04)' },
+             ticks: { color: '#8b94a8', maxRotation: 0, autoSkip: true, maxTicksLimit: 10 },
+             border: { color: 'rgba(255,255,255,0.08)' } },
+        y: { grid: { color: 'rgba(255,255,255,0.04)' },
+             ticks: { color: '#8b94a8', callback: v => v + '°C' },
+             border: { color: 'rgba(255,255,255,0.08)' } }
       }
     },
-    plugins: [{
-      id: 'recordLines',
-      afterDraw(chart) {
-        const { ctx, chartArea: { left, right }, scales: { y } } = chart;
-        ctx.save();
-        ctx.setLineDash([4, 4]);
-        ctx.lineWidth = 1;
-        if (typeof maxC === 'number') {
-          const yMax = y.getPixelForValue(maxC);
-          ctx.strokeStyle = 'rgba(255,93,93,0.6)';
-          ctx.beginPath(); ctx.moveTo(left, yMax); ctx.lineTo(right, yMax); ctx.stroke();
-          ctx.fillStyle = '#ff5d5d'; ctx.font = '11px Inter';
-          ctx.fillText(`max ${maxC}°C`, left + 6, yMax - 4);
-        }
-        if (typeof minC === 'number') {
-          const yMin = y.getPixelForValue(minC);
-          ctx.strokeStyle = 'rgba(95,182,255,0.6)';
-          ctx.beginPath(); ctx.moveTo(left, yMin); ctx.lineTo(right, yMin); ctx.stroke();
-          ctx.fillStyle = '#5fb6ff'; ctx.font = '11px Inter';
-          ctx.fillText(`min ${minC}°C`, left + 6, yMin + 14);
-        }
-        ctx.restore();
-      }
-    }]
+    plugins: [glow, invalidShade, crosshair]
+  });
+
+  let cmpRAF = null;
+  canvas.addEventListener('mousemove', (e) => {
+    const r = canvas.getBoundingClientRect();
+    compareChart._mouse = { x: e.clientX - r.left, y: e.clientY - r.top };
+    if (!cmpRAF) cmpRAF = requestAnimationFrame(() => { compareChart.draw(); cmpRAF = null; });
+  });
+  canvas.addEventListener('mouseleave', () => { compareChart._mouse = null; compareChart.draw(); });
+  canvas.style.cursor = 'crosshair';
+}
+
+async function runCompareAt(iso) {
+  lastAnchorIso = iso;
+  const metrics = document.getElementById('compare-metrics');
+  metrics.textContent = 'predicting…';
+  try {
+    const url = `/api/predict?datetime=${encodeURIComponent(iso)}` + (currentModel ? `&model=${currentModel}` : '');
+    const res = await fetch(url);
+    const data = await res.json();
+    if (data.error) { metrics.textContent = `error: ${data.error}`; return; }
+    addCompareStrand(data);
+    const modelTag = data.model ? ` &nbsp;·&nbsp; model <b>${data.model}</b>` : '';
+    if (data.metrics) {
+      const m = data.metrics;
+      metrics.innerHTML = `anchor: <b>${fmtTime(data.anchor)}</b>${modelTag} &nbsp;·&nbsp; RMSE <b>${m.rmse.toFixed(2)}°C</b> &nbsp;·&nbsp; MAE <b>${m.mae.toFixed(2)}°C</b>`;
+    } else {
+      metrics.innerHTML = `anchor: <b>${fmtTime(data.anchor)}</b>${modelTag} &nbsp;·&nbsp; <span style="color:var(--text-dim)">future not yet observed — forecast only</span>`;
+    }
+  } catch (e) {
+    metrics.textContent = `request failed: ${e.message}`;
+  }
+}
+
+function addCompareStrand(data) {
+  const lastInput = data.input[data.input.length - 1];
+  const anchorPoint = { x: new Date(lastInput.timestamp), y: lastInput.temperature };
+  const predData = [anchorPoint, ...data.predicted.map(p => ({ x: new Date(p.timestamp), y: p.temperature }))];
+
+  compareChart.data.datasets = compareChart.data.datasets.slice(0, 1);
+
+  compareChart.data.datasets.push({
+    label: 'Predicted', data: predData, borderColor: '#c084fc', borderWidth: 2.5, borderDash: [6, 4],
+    tension: 0.3, pointRadius: 2.5, pointHoverRadius: 5, pointBackgroundColor: '#c084fc', fill: false,
+  });
+  if (data.actual) {
+    const actData = [anchorPoint, ...data.actual.map(p => ({ x: new Date(p.timestamp), y: p.temperature }))];
+    compareChart.data.datasets.push({
+      label: 'Actual', data: actData, borderColor: '#6ee7a7', borderWidth: 2.5, tension: 0.3,
+      pointRadius: 2.5, pointHoverRadius: 5, pointBackgroundColor: '#6ee7a7', fill: false,
+    });
+  }
+  compareChart.update();
+}
+
+// ---- Model showdown ----
+const MODEL_COLORS = {
+  lstm: '#ffa37a',
+  gru:  '#6ee7a7',
+  mlp:  '#9aa8ff',
+  tcn:  '#ffd866',
+  ensemble: '#c084fc',
+};
+let showdownChart = null;
+let showdownSort = { key: 'val_rmse_c', asc: true };
+
+function initShowdown() {
+  if (!availableModels.length) return;
+  document.getElementById('showdown-panel').style.display = '';
+  refreshIcons();
+  bindCardHover();
+  buildLeaderboard();
+  drawShowdownBase();
+
+  document.getElementById('showdown-rand').addEventListener('click', () => {
+    if (!compareRange.earliest_anchor) return;
+    const lo = new Date(compareRange.earliest_anchor).getTime();
+    const hi = new Date(compareRange.last).getTime();
+    const t = new Date(lo + Math.random() * (hi - lo));
+    runShowdownAt(t.toISOString());
+  });
+  document.getElementById('showdown-latest').addEventListener('click', () => {
+    runShowdownAt(compareRange.last);
+  });
+
+  // initial run on the latest anchor so the chart isn't empty
+  runShowdownAt(compareRange.last);
+}
+
+function buildLeaderboard() {
+  const tbody = document.querySelector('#leaderboard tbody');
+  const ths = document.querySelectorAll('#leaderboard th');
+  ths.forEach(th => {
+    th.classList.toggle('sorted', th.dataset.key === showdownSort.key);
+    th.classList.toggle('asc', showdownSort.asc);
+    th.onclick = () => {
+      const k = th.dataset.key;
+      if (showdownSort.key === k) showdownSort.asc = !showdownSort.asc;
+      else { showdownSort.key = k; showdownSort.asc = true; }
+      buildLeaderboard();
+    };
+  });
+
+  const sorted = [...availableModels].sort((a, b) => {
+    const av = a[showdownSort.key], bv = b[showdownSort.key];
+    if (typeof av === 'string') return showdownSort.asc ? av.localeCompare(bv) : bv.localeCompare(av);
+    if (av == null) return 1;
+    if (bv == null) return -1;
+    return showdownSort.asc ? (av - bv) : (bv - av);
+  });
+
+  // figure out best/worst per numeric column for highlighting
+  const numericKeys = ['val_rmse_c','val_mae_c','train_rmse_c','overfit_ratio','n_params','best_epoch'];
+  const bests = {};
+  const worsts = {};
+  numericKeys.forEach(k => {
+    const vals = availableModels.map(m => m[k]).filter(v => v != null);
+    if (!vals.length) return;
+    bests[k] = Math.min(...vals);
+    worsts[k] = Math.max(...vals);
+  });
+  // for overfit ratio, "best" is closest to 1.0, not lowest
+  const ofVals = availableModels.map(m => m.overfit_ratio).filter(v => v != null);
+  if (ofVals.length) {
+    bests.overfit_ratio = ofVals.reduce((a, b) => Math.abs(b - 1) < Math.abs(a - 1) ? b : a);
+    worsts.overfit_ratio = ofVals.reduce((a, b) => Math.abs(b - 1) > Math.abs(a - 1) ? b : a);
+  }
+
+  function fmt(v, k) {
+    if (v == null) return '—';
+    if (k === 'n_params') return v.toLocaleString();
+    if (k === 'best_epoch') return v;
+    return v.toFixed(k === 'overfit_ratio' ? 2 : 3);
+  }
+  function cellClass(v, k) {
+    if (v == null) return '';
+    if (v === bests[k]) return 'best';
+    if (v === worsts[k]) return 'worst';
+    return '';
+  }
+
+  const bestRmseModel = availableModels.reduce(
+    (a, b) => (a.val_rmse_c == null ? b : (b.val_rmse_c != null && b.val_rmse_c < a.val_rmse_c ? b : a)),
+    availableModels[0],
+  ).name;
+
+  tbody.innerHTML = sorted.map((m) => {
+    const color = MODEL_COLORS[m.name] || '#5fa8ff';
+    const rank = m.name === bestRmseModel ? 'rank-1' : '';
+    const isCurrent = m.name === currentModel ? 'row-current' : '';
+    return `
+      <tr class="${rank} ${isCurrent}" data-model="${m.name}">
+        <td class="model-cell" style="--c:${color}"><span class="dot"></span>${m.name}</td>
+        <td class="num ${cellClass(m.val_rmse_c, 'val_rmse_c')}">${fmt(m.val_rmse_c, 'val_rmse_c')}°C</td>
+        <td class="num ${cellClass(m.val_mae_c, 'val_mae_c')}">${fmt(m.val_mae_c, 'val_mae_c')}°C</td>
+        <td class="num ${cellClass(m.train_rmse_c, 'train_rmse_c')}">${fmt(m.train_rmse_c, 'train_rmse_c')}°C</td>
+        <td class="num ${cellClass(m.overfit_ratio, 'overfit_ratio')}">${fmt(m.overfit_ratio, 'overfit_ratio')}</td>
+        <td class="num">${fmt(m.n_params, 'n_params')}</td>
+        <td class="num">${fmt(m.best_epoch, 'best_epoch')}</td>
+      </tr>
+    `;
+  }).join('');
+
+  // clicking a model row in the leaderboard switches the global model
+  tbody.querySelectorAll('tr').forEach(tr => {
+    tr.querySelector('.model-cell').addEventListener('click', () => {
+      setActiveModel(tr.dataset.model);
+    });
   });
 }
 
-load();
-setInterval(load, 60000);
+function drawShowdownBase() {
+  const canvas = document.getElementById('showdown-chart');
+  const ctx = canvas.getContext('2d');
+  if (showdownChart) showdownChart.destroy();
+
+  const glow = {
+    id: 'showdownGlow',
+    beforeDatasetDraw(chart, args) {
+      const c = chart.ctx;
+      const ds = chart.data.datasets[args.index];
+      c.save();
+      c.shadowColor = ds.borderColor;
+      c.shadowBlur = ds.borderDash ? 10 : 14;
+    },
+    afterDatasetDraw(chart) { chart.ctx.restore(); }
+  };
+
+  showdownChart = new Chart(ctx, {
+    type: 'line',
+    data: { datasets: [] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'nearest', axis: 'x', intersect: false },
+      animation: { duration: 500, easing: 'easeOutQuart' },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: 'rgba(13,16,24,0.96)', borderColor: 'rgba(255,255,255,0.12)', borderWidth: 1, padding: 12,
+          titleColor: '#e9edf5', bodyColor: '#e9edf5',
+          callbacks: { label: c => `${c.dataset.label}: ${c.parsed.y.toFixed(1)}°C` }
+        }
+      },
+      scales: {
+        x: { type: 'time',
+             time: { tooltipFormat: 'PP HH:mm', displayFormats: { hour: 'HH:mm', day: 'MMM d' } },
+             grid: { color: 'rgba(255,255,255,0.04)' },
+             ticks: { color: '#8b94a8', maxRotation: 0, autoSkip: true, maxTicksLimit: 8 },
+             border: { color: 'rgba(255,255,255,0.08)' } },
+        y: { grid: { color: 'rgba(255,255,255,0.04)' },
+             ticks: { color: '#8b94a8', callback: v => v + '°C' },
+             border: { color: 'rgba(255,255,255,0.08)' } }
+      }
+    },
+    plugins: [glow]
+  });
+}
+
+async function runShowdownAt(iso) {
+  const anchorEl = document.getElementById('showdown-anchor');
+  anchorEl.textContent = 'predicting…';
+  try {
+    const res = await fetch(`/api/predict_all?datetime=${encodeURIComponent(iso)}`);
+    const data = await res.json();
+    if (data.error) { anchorEl.textContent = `error: ${data.error}`; return; }
+
+    const inputData = data.input.map(p => ({ x: new Date(p.timestamp), y: p.temperature }));
+    const lastInput = data.input[data.input.length - 1];
+    const anchorPoint = { x: new Date(lastInput.timestamp), y: lastInput.temperature };
+
+    const datasets = [{
+      label: 'history (input 48h)',
+      data: inputData,
+      borderColor: '#5fa8ff',
+      backgroundColor: 'rgba(95,168,255,0.06)',
+      borderWidth: 1.5,
+      tension: 0.25,
+      pointRadius: 0,
+      pointHoverRadius: 3,
+      fill: true,
+    }];
+
+    Object.entries(data.models).forEach(([name, mres]) => {
+      const color = MODEL_COLORS[name] || '#c084fc';
+      const predData = [anchorPoint, ...mres.predicted.map(p => ({ x: new Date(p.timestamp), y: p.temperature }))];
+      datasets.push({
+        label: name + (mres.metrics ? ` (RMSE ${mres.metrics.rmse.toFixed(2)})` : ''),
+        data: predData,
+        borderColor: color,
+        borderWidth: 2.2,
+        borderDash: [6, 4],
+        tension: 0.3,
+        pointRadius: 2,
+        pointHoverRadius: 5,
+        pointBackgroundColor: color,
+        fill: false,
+      });
+    });
+
+    if (data.actual) {
+      const actData = [anchorPoint, ...data.actual.map(p => ({ x: new Date(p.timestamp), y: p.temperature }))];
+      datasets.push({
+        label: 'actual',
+        data: actData,
+        borderColor: '#6ee7a7',
+        borderWidth: 2.8,
+        tension: 0.3,
+        pointRadius: 2.5,
+        pointHoverRadius: 5,
+        pointBackgroundColor: '#6ee7a7',
+        fill: false,
+      });
+    }
+
+    showdownChart.data.datasets = datasets;
+    showdownChart.update();
+
+    // legend
+    const legendEl = document.getElementById('showdown-legend');
+    const swatches = [`<span class="swatch history">history</span>`];
+    Object.entries(data.models).forEach(([name, mres]) => {
+      const color = MODEL_COLORS[name] || '#c084fc';
+      const tag = mres.metrics ? `${name} · RMSE ${mres.metrics.rmse.toFixed(2)}°C · MAE ${mres.metrics.mae.toFixed(2)}°C` : name;
+      swatches.push(`<span class="swatch" style="--c:${color}">${tag}</span>`);
+    });
+    if (data.actual) swatches.push(`<span class="swatch actual">actual</span>`);
+    legendEl.innerHTML = swatches.join('');
+
+    const isLive = !data.actual;
+    anchorEl.innerHTML = `anchor: <b>${fmtTime(data.anchor)}</b>` + (isLive ? ` · <span style="color:var(--text-dim)">forecast only (no actual yet)</span>` : '');
+  } catch (e) {
+    anchorEl.textContent = `request failed: ${e.message}`;
+  }
+}
+
+initModels();
+initCompare();
+refreshIcons();
+
+// ---- flowing wave particles in the background ----
+(function initParticles() {
+  const canvas = document.getElementById('particles-bg');
+  const ctx = canvas.getContext('2d');
+  let W = 0, H = 0, dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+  function resize() {
+    W = window.innerWidth; H = window.innerHeight;
+    canvas.width = W * dpr; canvas.height = H * dpr;
+    canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  const COLORS = ['#ff7a59', '#5fa8ff', '#c084fc', '#ffa37a', '#6ee7a7'];
+  const N = 110;
+  const particles = [];
+  for (let i = 0; i < N; i++) {
+    particles.push({
+      x: Math.random() * W,
+      y: Math.random() * H,
+      r: 0.8 + Math.random() * 2.2,
+      // base drift to the right (or left) — slow
+      vx: (0.15 + Math.random() * 0.4) * (Math.random() < 0.5 ? 1 : -1),
+      // wave parameters: amplitude, freq, phase
+      amp: 0.4 + Math.random() * 1.4,
+      freq: 0.0008 + Math.random() * 0.002,
+      phase: Math.random() * Math.PI * 2,
+      color: COLORS[i % COLORS.length],
+      alpha: 0.25 + Math.random() * 0.55,
+    });
+  }
+
+  function tick(now) {
+    ctx.clearRect(0, 0, W, H);
+    for (const p of particles) {
+      // wave-driven y velocity: sin of (x position * freq + time + phase)
+      const vy = Math.sin(p.x * 0.005 + now * p.freq + p.phase) * p.amp;
+      p.x += p.vx;
+      p.y += vy * 0.6;
+      // wrap
+      if (p.x < -10) p.x = W + 10;
+      if (p.x > W + 10) p.x = -10;
+      if (p.y < -10) p.y = H + 10;
+      if (p.y > H + 10) p.y = -10;
+
+      ctx.beginPath();
+      ctx.fillStyle = p.color;
+      ctx.globalAlpha = p.alpha;
+      ctx.shadowColor = p.color;
+      ctx.shadowBlur = 14;
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+    ctx.shadowBlur = 0;
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+})();
+
+// ---- 3D neural network: rebuilds from MODEL_INFO[name].layers ----
+let rebuildNeural = () => {};
+(function initNeural() {
+  if (!window.THREE) return;
+  const canvas = document.getElementById('neural-bg');
+  const wrap = canvas.parentElement;
+  const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 1000);
+  camera.position.set(0, 0, 22);
+
+  function resize() {
+    const w = wrap.clientWidth, h = wrap.clientHeight;
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  const root = new THREE.Group();
+  scene.add(root);
+
+  // mutable state — rebuilt per model
+  let nodes = [], nodeMeshes = [], nodeWeights = [], nodePhases = [], pulses = [];
+
+  function hash01(i, salt) {
+    const x = Math.sin((i + 1) * 12.9898 + salt * 78.233) * 43758.5453;
+    return x - Math.floor(x);
+  }
+
+  function disposeChildren(group) {
+    while (group.children.length) {
+      const c = group.children[0];
+      group.remove(c);
+      if (c.geometry) c.geometry.dispose();
+      if (c.material) {
+        if (Array.isArray(c.material)) c.material.forEach(m => m.dispose());
+        else c.material.dispose();
+      }
+    }
+  }
+
+  function build(modelName) {
+    const info = MODEL_INFO[modelName] || MODEL_INFO.lstm;
+    const layers = info.layers;
+    disposeChildren(root);
+    nodes = []; nodeMeshes = []; nodeWeights = []; nodePhases = []; pulses = [];
+
+    layers.forEach((layer, li) => {
+      const positions = [], meshes = [], weights = [], phases = [];
+      const geom = new THREE.SphereGeometry(0.07, 10, 10);
+      for (let i = 0; i < layer.count; i++) {
+        const angle = (i / layer.count) * Math.PI * 2;
+        const y = Math.cos(angle) * layer.radius;
+        const z = Math.sin(angle) * layer.radius;
+        const p = new THREE.Vector3(layer.x, y, z);
+        positions.push(p);
+        const r = hash01(i, li * 7 + 1);
+        const w = 0.15 + Math.pow(r, 2.2) * 0.85;
+        weights.push(w);
+        phases.push(hash01(i, li * 11 + 3) * Math.PI * 2);
+        const mat = new THREE.MeshBasicMaterial({ color: layer.color, transparent: true, opacity: w });
+        const mesh = new THREE.Mesh(geom, mat);
+        mesh.position.copy(p);
+        mesh.scale.setScalar(0.6 + w * 0.9);
+        root.add(mesh);
+        meshes.push(mesh);
+      }
+      nodes.push(positions);
+      nodeMeshes.push(meshes);
+      nodeWeights.push(weights);
+      nodePhases.push(phases);
+    });
+
+    // sampled inter-layer connections
+    const lineMat = new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.05 });
+    const linePts = [];
+    const sampleK = info.sampleK || [6, 4, 6];
+    for (let li = 0; li < nodes.length - 1; li++) {
+      const from = nodes[li], to = nodes[li + 1];
+      const k = Math.min(sampleK[li] ?? 3, to.length);
+      for (const fp of from) {
+        for (let j = 0; j < k; j++) {
+          const tp = to[Math.floor(Math.random() * to.length)];
+          linePts.push(fp.x, fp.y, fp.z, tp.x, tp.y, tp.z);
+        }
+      }
+    }
+    const lineGeom = new THREE.BufferGeometry();
+    lineGeom.setAttribute('position', new THREE.Float32BufferAttribute(linePts, 3));
+    root.add(new THREE.LineSegments(lineGeom, lineMat));
+
+    // recurrent self-loops on layers that have them (LSTM / GRU)
+    if (info.recurrent && info.recurrent.length) {
+      const recurrentMat = new THREE.LineBasicMaterial({ color: 0x5fa8ff, transparent: true, opacity: 0.18 });
+      info.recurrent.forEach(li => {
+        if (!nodes[li]) return;
+        const ringGeom = new THREE.BufferGeometry();
+        const segs = 12, rr = 0.18;
+        const pts = [];
+        nodes[li].forEach(p => {
+          for (let s = 0; s < segs; s++) {
+            const a0 = (s / segs) * Math.PI * 2, a1 = ((s + 1) / segs) * Math.PI * 2;
+            pts.push(p.x + Math.cos(a0) * rr, p.y + Math.sin(a0) * rr, p.z);
+            pts.push(p.x + Math.cos(a1) * rr, p.y + Math.sin(a1) * rr, p.z);
+          }
+        });
+        ringGeom.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
+        root.add(new THREE.LineSegments(ringGeom, recurrentMat));
+      });
+    }
+
+    // dilated convolution arcs for TCN (skip-connection look)
+    if (info.dilatedArcs) {
+      const arcMat = new THREE.LineBasicMaterial({ color: 0xffa37a, transparent: true, opacity: 0.22 });
+      info.dilatedArcs.forEach(li => {
+        if (!nodes[li]) return;
+        const arcGeom = new THREE.BufferGeometry();
+        const pts = [];
+        const layerNodes = nodes[li];
+        for (let i = 0; i < layerNodes.length; i++) {
+          for (const dilation of [2, 4, 8]) {
+            const j = (i + dilation) % layerNodes.length;
+            const a = layerNodes[i], b = layerNodes[j];
+            const mx = (a.x + b.x) / 2;
+            const my = (a.y + b.y) / 2 + 0.6;
+            const mz = (a.z + b.z) / 2 + 0.6;
+            pts.push(a.x, a.y, a.z, mx, my, mz);
+            pts.push(mx, my, mz, b.x, b.y, b.z);
+          }
+        }
+        arcGeom.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
+        root.add(new THREE.LineSegments(arcGeom, arcMat));
+      });
+    }
+
+    // pulses
+    const pulseGeom = new THREE.SphereGeometry(0.04, 8, 8);
+    function newPulsePath() {
+      const li = Math.floor(Math.random() * (nodes.length - 1));
+      const from = nodes[li][Math.floor(Math.random() * nodes[li].length)];
+      const to   = nodes[li + 1][Math.floor(Math.random() * nodes[li + 1].length)];
+      return { from, to };
+    }
+    pulses._newPath = newPulsePath;
+    for (let i = 0; i < 32; i++) {
+      const mat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.0 });
+      const m = new THREE.Mesh(pulseGeom, mat);
+      root.add(m);
+      pulses.push({ mesh: m, t: Math.random(), speed: 0.004 + Math.random() * 0.012, ...newPulsePath() });
+    }
+  }
+
+  rebuildNeural = build;
+  build('lstm'); // initial — overwritten as soon as setActiveModel runs
+
+  function animate() {
+    const t = Date.now() * 0.001;
+    root.rotation.y += 0.0022;
+    root.rotation.x = Math.sin(t * 0.18) * 0.16;
+    for (let li = 0; li < nodeMeshes.length; li++) {
+      const meshes = nodeMeshes[li], weights = nodeWeights[li], phases = nodePhases[li];
+      for (let i = 0; i < meshes.length; i++) {
+        const w = weights[i];
+        const osc = 0.75 + 0.25 * Math.sin(t * 0.9 + phases[i]);
+        meshes[i].material.opacity = w * osc;
+      }
+    }
+    pulses.forEach(p => {
+      p.t += p.speed;
+      if (p.t >= 1) { Object.assign(p, pulses._newPath()); p.t = 0; }
+      p.mesh.position.lerpVectors(p.from, p.to, p.t);
+      p.mesh.material.opacity = Math.sin(p.t * Math.PI) * 0.85;
+    });
+    renderer.render(scene, camera);
+    requestAnimationFrame(animate);
+  }
+  animate();
+})();
+
+// ----- pipeline slideshow -----
+(function pipelineInit() {
+  const stage = document.getElementById('pipeline-stage');
+  if (!stage) return;
+  const slides = stage.querySelectorAll('.pipeline-slide');
+  const dotsEl = document.getElementById('pipeline-dots');
+  const progEl = document.getElementById('pipeline-progress');
+  const prev = document.getElementById('pipeline-prev');
+  const next = document.getElementById('pipeline-next');
+  const total = slides.length;
+  let idx = 0;
+  let auto = true;
+  let elapsed = 0;
+  const SLIDE_MS = 7000;
+
+  // build dots
+  for (let i = 0; i < total; i++) {
+    const b = document.createElement('button');
+    b.className = 'pipeline-dot' + (i === 0 ? ' active' : '');
+    b.setAttribute('aria-label', `slide ${i + 1}`);
+    b.addEventListener('click', () => goTo(i, true));
+    dotsEl.appendChild(b);
+  }
+  const dots = dotsEl.querySelectorAll('.pipeline-dot');
+
+  function goTo(i, fromUser) {
+    idx = (i + total) % total;
+    slides.forEach((s, k) => s.classList.toggle('active', k === idx));
+    dots.forEach((d, k) => d.classList.toggle('active', k === idx));
+    elapsed = 0;
+    if (fromUser) auto = false; // pause auto-advance after manual interaction
+  }
+
+  prev.addEventListener('click', () => goTo(idx - 1, true));
+  next.addEventListener('click', () => goTo(idx + 1, true));
+  document.addEventListener('keydown', (e) => {
+    // only if slideshow is in viewport-ish (cheap check)
+    const r = stage.getBoundingClientRect();
+    if (r.bottom < 0 || r.top > window.innerHeight) return;
+    if (e.key === 'ArrowRight') goTo(idx + 1, true);
+    else if (e.key === 'ArrowLeft') goTo(idx - 1, true);
+  });
+  // pause auto-advance on hover, resume when leaving
+  stage.addEventListener('mouseenter', () => { auto = false; });
+  stage.addEventListener('mouseleave', () => { auto = true; elapsed = 0; });
+
+  let last = performance.now();
+  function tick(now) {
+    const dt = now - last;
+    last = now;
+    if (auto) {
+      elapsed += dt;
+      progEl.style.width = Math.min(100, (elapsed / SLIDE_MS) * 100) + '%';
+      if (elapsed >= SLIDE_MS) goTo(idx + 1, false);
+    } else {
+      progEl.style.width = '0%';
+    }
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+})();
 </script>
 </body>
 </html>

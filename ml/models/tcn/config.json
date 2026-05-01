@@ -1,0 +1,15 @@
+{
+  "name": "tcn",
+  "n_features": 13,
+  "input_len": 48,
+  "output_len": 24,
+  "n_params": 113368,
+  "best_epoch": 7,
+  "best_val_loss": 0.11738193825858964,
+  "best_val_rmse_c": 1.9255589053675817,
+  "train_rmse_c": 1.6803291752414742,
+  "train_mae_c": 1.2479783000697147,
+  "val_rmse_c": 1.9255589053675817,
+  "val_mae_c": 1.4281437870861264,
+  "overfit_ratio": 1.145941482025905
+}
