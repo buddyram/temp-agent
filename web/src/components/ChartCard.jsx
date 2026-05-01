@@ -18,7 +18,13 @@ export default function ChartCard({ history, maxC, minC, forecast, openMeteo, cu
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
-    const data = history.map(e => ({ x: new Date(e.timestamp), y: e.data.temperature }));
+    const GAP_MS = 60 * 60 * 1000;
+    const raw = history.map(e => ({ x: new Date(e.timestamp), y: e.data.temperature }));
+    const data = [];
+    for (let i = 0; i < raw.length; i++) {
+      if (i > 0 && raw[i].x - raw[i - 1].x > GAP_MS) data.push({ x: new Date(raw[i - 1].x.getTime() + 1), y: NaN });
+      data.push(raw[i]);
+    }
     const grad = ctx.createLinearGradient(0, 0, 0, 420);
     grad.addColorStop(0, 'rgba(255,122,89,0.45)');
     grad.addColorStop(1, 'rgba(255,122,89,0)');
@@ -85,7 +91,7 @@ export default function ChartCard({ history, maxC, minC, forecast, openMeteo, cu
       borderWidth: 2.5, tension: 0.35,
       pointRadius: 0, pointHoverRadius: 6,
       pointHoverBackgroundColor: '#ff7a59', pointHoverBorderColor: '#fff', pointHoverBorderWidth: 2,
-      fill: true,
+      fill: true, spanGaps: false,
     }];
 
     if (forecast && forecast.predictions?.length) {

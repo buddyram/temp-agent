@@ -5451,33 +5451,1239 @@
     },
     {
       "data": {
-        "time": "2026-04-29T17:00",
+        "time": "2026-04-29T17:30",
         "interval": 900,
-        "temperature": 17.2,
-        "windspeed": 15.0,
-        "winddirection": 145,
-        "weathercode": 3,
+        "temperature": 17.1,
+        "windspeed": 3.3,
+        "winddirection": 257,
         "is_day": 1,
-        "pressure": 1014.0,
-        "humidity": 50,
-        "cloud_cover": 100
+        "weathercode": 0
       },
-      "timestamp": "2026-04-29T17:12:36.465243+00:00"
+      "timestamp": "2026-04-29T17:30:29.650514+00:00"
     },
     {
       "data": {
-        "time": "2026-04-29T17:00",
+        "time": "2026-04-29T18:00",
         "interval": 900,
-        "temperature": 16.1,
-        "windspeed": 4.7,
-        "winddirection": 274,
-        "weathercode": 0,
+        "temperature": 17.8,
+        "windspeed": 6.3,
+        "winddirection": 257,
         "is_day": 1,
-        "pressure": 1018.4,
-        "humidity": 76,
-        "cloud_cover": 3
+        "weathercode": 0
       },
-      "timestamp": "2026-04-29T17:14:56.413633+00:00"
+      "timestamp": "2026-04-29T18:00:36.740101+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-04-29T18:30",
+        "interval": 900,
+        "temperature": 18.3,
+        "windspeed": 7.9,
+        "winddirection": 267,
+        "is_day": 1,
+        "weathercode": 0
+      },
+      "timestamp": "2026-04-29T18:30:36.727738+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-04-29T19:00",
+        "interval": 900,
+        "temperature": 19.3,
+        "windspeed": 11.1,
+        "winddirection": 295,
+        "is_day": 1,
+        "weathercode": 0
+      },
+      "timestamp": "2026-04-29T19:00:36.102339+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-04-29T19:30",
+        "interval": 900,
+        "temperature": 20.1,
+        "windspeed": 11.3,
+        "winddirection": 297,
+        "is_day": 1,
+        "weathercode": 0
+      },
+      "timestamp": "2026-04-29T19:30:30.565642+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-04-29T20:00",
+        "interval": 900,
+        "temperature": 20.8,
+        "windspeed": 12.8,
+        "winddirection": 302,
+        "is_day": 1,
+        "weathercode": 0
+      },
+      "timestamp": "2026-04-29T20:00:28.443991+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-04-29T20:30",
+        "interval": 900,
+        "temperature": 21.3,
+        "windspeed": 14.8,
+        "winddirection": 309,
+        "is_day": 1,
+        "weathercode": 0
+      },
+      "timestamp": "2026-04-29T20:30:30.613715+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-04-29T21:00",
+        "interval": 900,
+        "temperature": 21.3,
+        "windspeed": 18.1,
+        "winddirection": 317,
+        "is_day": 1,
+        "weathercode": 0
+      },
+      "timestamp": "2026-04-29T21:00:33.955742+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-04-29T21:30",
+        "interval": 900,
+        "temperature": 21.6,
+        "windspeed": 21.2,
+        "winddirection": 325,
+        "is_day": 1,
+        "weathercode": 0
+      },
+      "timestamp": "2026-04-29T21:30:29.608521+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-04-29T22:00",
+        "interval": 900,
+        "temperature": 21.4,
+        "windspeed": 19.8,
+        "winddirection": 323,
+        "is_day": 1,
+        "weathercode": 0
+      },
+      "timestamp": "2026-04-29T22:00:36.584127+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-04-29T22:30",
+        "interval": 900,
+        "temperature": 20.1,
+        "windspeed": 21.6,
+        "winddirection": 327,
+        "is_day": 1,
+        "weathercode": 0
+      },
+      "timestamp": "2026-04-29T22:30:30.667711+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-04-29T23:00",
+        "interval": 900,
+        "temperature": 19.6,
+        "windspeed": 22.3,
+        "winddirection": 326,
+        "is_day": 1,
+        "weathercode": 0
+      },
+      "timestamp": "2026-04-29T23:00:32.401116+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-04-29T23:30",
+        "interval": 900,
+        "temperature": 19.2,
+        "windspeed": 22.0,
+        "winddirection": 328,
+        "is_day": 1,
+        "weathercode": 0
+      },
+      "timestamp": "2026-04-29T23:30:34.014875+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-04-30T00:00",
+        "interval": 900,
+        "temperature": 18.3,
+        "windspeed": 21.5,
+        "winddirection": 329,
+        "is_day": 1,
+        "weathercode": 0
+      },
+      "timestamp": "2026-04-30T00:00:35.660370+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-04-30T00:30",
+        "interval": 900,
+        "temperature": 17.4,
+        "windspeed": 21.3,
+        "winddirection": 330,
+        "is_day": 1,
+        "weathercode": 0
+      },
+      "timestamp": "2026-04-30T00:30:32.951689+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-04-30T01:00",
+        "interval": 900,
+        "temperature": 16.5,
+        "windspeed": 20.7,
+        "winddirection": 329,
+        "is_day": 1,
+        "weathercode": 0
+      },
+      "timestamp": "2026-04-30T01:00:37.144045+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-04-30T01:30",
+        "interval": 900,
+        "temperature": 15.9,
+        "windspeed": 20.2,
+        "winddirection": 329,
+        "is_day": 1,
+        "weathercode": 0
+      },
+      "timestamp": "2026-04-30T01:30:26.815430+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-04-30T02:00",
+        "interval": 900,
+        "temperature": 15.3,
+        "windspeed": 17.6,
+        "winddirection": 329,
+        "is_day": 1,
+        "weathercode": 0
+      },
+      "timestamp": "2026-04-30T02:00:26.638301+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-04-30T02:30",
+        "interval": 900,
+        "temperature": 14.3,
+        "windspeed": 13.5,
+        "winddirection": 335,
+        "is_day": 1,
+        "weathercode": 0
+      },
+      "timestamp": "2026-04-30T02:30:30.894047+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-04-30T03:00",
+        "interval": 900,
+        "temperature": 13.6,
+        "windspeed": 9.8,
+        "winddirection": 343,
+        "is_day": 0,
+        "weathercode": 0
+      },
+      "timestamp": "2026-04-30T03:00:32.715685+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-04-30T03:30",
+        "interval": 900,
+        "temperature": 13.1,
+        "windspeed": 7.8,
+        "winddirection": 347,
+        "is_day": 0,
+        "weathercode": 0
+      },
+      "timestamp": "2026-04-30T03:30:27.035005+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-04-30T04:00",
+        "interval": 900,
+        "temperature": 12.7,
+        "windspeed": 5.8,
+        "winddirection": 353,
+        "is_day": 0,
+        "weathercode": 0
+      },
+      "timestamp": "2026-04-30T04:00:37.828655+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-04-30T04:30",
+        "interval": 900,
+        "temperature": 12.5,
+        "windspeed": 3.6,
+        "winddirection": 6,
+        "is_day": 0,
+        "weathercode": 0
+      },
+      "timestamp": "2026-04-30T04:30:30.123448+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-04-30T05:00",
+        "interval": 900,
+        "temperature": 12.1,
+        "windspeed": 3.7,
+        "winddirection": 61,
+        "is_day": 0,
+        "weathercode": 0
+      },
+      "timestamp": "2026-04-30T05:00:34.942347+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-04-30T05:30",
+        "interval": 900,
+        "temperature": 12.1,
+        "windspeed": 4.2,
+        "winddirection": 70,
+        "is_day": 0,
+        "weathercode": 0
+      },
+      "timestamp": "2026-04-30T05:30:32.184070+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-04-30T06:00",
+        "interval": 900,
+        "temperature": 11.7,
+        "windspeed": 4.7,
+        "winddirection": 67,
+        "is_day": 0,
+        "weathercode": 0
+      },
+      "timestamp": "2026-04-30T06:00:37.271186+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-04-30T06:30",
+        "interval": 900,
+        "temperature": 11.3,
+        "windspeed": 7.2,
+        "winddirection": 37,
+        "is_day": 0,
+        "weathercode": 0
+      },
+      "timestamp": "2026-04-30T06:30:24.312911+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-04-30T07:00",
+        "interval": 900,
+        "temperature": 11.1,
+        "windspeed": 7.6,
+        "winddirection": 31,
+        "is_day": 0,
+        "weathercode": 0
+      },
+      "timestamp": "2026-04-30T07:00:40.182899+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-04-30T07:30",
+        "interval": 900,
+        "temperature": 10.9,
+        "windspeed": 6.9,
+        "winddirection": 43,
+        "is_day": 0,
+        "weathercode": 0
+      },
+      "timestamp": "2026-04-30T07:30:31.953394+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-04-30T08:00",
+        "interval": 900,
+        "temperature": 10.7,
+        "windspeed": 6.6,
+        "winddirection": 49,
+        "is_day": 0,
+        "weathercode": 0
+      },
+      "timestamp": "2026-04-30T08:00:28.149370+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-04-30T08:30",
+        "interval": 900,
+        "temperature": 10.9,
+        "windspeed": 5.4,
+        "winddirection": 37,
+        "is_day": 0,
+        "weathercode": 0
+      },
+      "timestamp": "2026-04-30T08:30:28.702497+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-04-30T09:00",
+        "interval": 900,
+        "temperature": 11.8,
+        "windspeed": 5.3,
+        "winddirection": 28,
+        "is_day": 0,
+        "weathercode": 3
+      },
+      "timestamp": "2026-04-30T09:00:27.989476+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-04-30T09:30",
+        "interval": 900,
+        "temperature": 11.6,
+        "windspeed": 4.3,
+        "winddirection": 42,
+        "is_day": 0,
+        "weathercode": 3
+      },
+      "timestamp": "2026-04-30T09:30:30.606056+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-04-30T10:00",
+        "interval": 900,
+        "temperature": 11.2,
+        "windspeed": 6.7,
+        "winddirection": 74,
+        "is_day": 0,
+        "weathercode": 3
+      },
+      "timestamp": "2026-04-30T10:00:27.617170+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-04-30T10:30",
+        "interval": 900,
+        "temperature": 11.4,
+        "windspeed": 4.7,
+        "winddirection": 81,
+        "is_day": 0,
+        "weathercode": 3
+      },
+      "timestamp": "2026-04-30T10:30:28.811371+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-04-30T11:00",
+        "interval": 900,
+        "temperature": 11.7,
+        "windspeed": 3.5,
+        "winddirection": 24,
+        "is_day": 0,
+        "weathercode": 3
+      },
+      "timestamp": "2026-04-30T11:00:33.534162+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-04-30T11:30",
+        "interval": 900,
+        "temperature": 11.8,
+        "windspeed": 4.6,
+        "winddirection": 39,
+        "is_day": 0,
+        "weathercode": 3
+      },
+      "timestamp": "2026-04-30T11:30:32.930095+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-04-30T12:00",
+        "interval": 900,
+        "temperature": 10.6,
+        "windspeed": 4.3,
+        "winddirection": 48,
+        "is_day": 0,
+        "weathercode": 0
+      },
+      "timestamp": "2026-04-30T12:00:32.506470+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-04-30T12:30",
+        "interval": 900,
+        "temperature": 10.4,
+        "windspeed": 5.2,
+        "winddirection": 56,
+        "is_day": 0,
+        "weathercode": 1
+      },
+      "timestamp": "2026-04-30T12:30:38.075577+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-04-30T13:00",
+        "interval": 900,
+        "temperature": 10.4,
+        "windspeed": 4.5,
+        "winddirection": 61,
+        "is_day": 0,
+        "weathercode": 0
+      },
+      "timestamp": "2026-04-30T13:00:28.389900+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-04-30T13:30",
+        "interval": 900,
+        "temperature": 10.2,
+        "windspeed": 5.5,
+        "winddirection": 58,
+        "is_day": 1,
+        "weathercode": 2
+      },
+      "timestamp": "2026-04-30T13:30:33.423888+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-04-30T14:00",
+        "interval": 900,
+        "temperature": 10.8,
+        "windspeed": 4.3,
+        "winddirection": 66,
+        "is_day": 1,
+        "weathercode": 1
+      },
+      "timestamp": "2026-04-30T14:00:39.618864+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-04-30T14:30",
+        "interval": 900,
+        "temperature": 11.8,
+        "windspeed": 3.8,
+        "winddirection": 107,
+        "is_day": 1,
+        "weathercode": 2
+      },
+      "timestamp": "2026-04-30T14:30:38.995917+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-04-30T15:00",
+        "interval": 900,
+        "temperature": 12.2,
+        "windspeed": 1.8,
+        "winddirection": 101,
+        "is_day": 1,
+        "weathercode": 2
+      },
+      "timestamp": "2026-04-30T15:00:31.231917+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-04-30T15:30",
+        "interval": 900,
+        "temperature": 12.7,
+        "windspeed": 0.8,
+        "winddirection": 243,
+        "is_day": 1,
+        "weathercode": 2
+      },
+      "timestamp": "2026-04-30T15:30:26.237822+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-04-30T16:00",
+        "interval": 900,
+        "temperature": 13.0,
+        "windspeed": 2.2,
+        "winddirection": 279,
+        "is_day": 1,
+        "weathercode": 3
+      },
+      "timestamp": "2026-04-30T16:00:30.577715+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-04-30T16:30",
+        "interval": 900,
+        "temperature": 12.9,
+        "windspeed": 2.4,
+        "winddirection": 297,
+        "is_day": 1,
+        "weathercode": 2
+      },
+      "timestamp": "2026-04-30T16:30:31.302279+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-04-30T17:00",
+        "interval": 900,
+        "temperature": 13.4,
+        "windspeed": 2.4,
+        "winddirection": 297,
+        "is_day": 1,
+        "weathercode": 2
+      },
+      "timestamp": "2026-04-30T17:00:36.860886+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-04-30T17:30",
+        "interval": 900,
+        "temperature": 14.2,
+        "windspeed": 3.2,
+        "winddirection": 297,
+        "is_day": 1,
+        "weathercode": 2
+      },
+      "timestamp": "2026-04-30T17:30:32.940539+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-04-30T18:00",
+        "interval": 900,
+        "temperature": 14.4,
+        "windspeed": 5.3,
+        "winddirection": 298,
+        "is_day": 1,
+        "weathercode": 2
+      },
+      "timestamp": "2026-04-30T18:00:27.060499+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-04-30T18:30",
+        "interval": 900,
+        "temperature": 15.8,
+        "windspeed": 6.3,
+        "winddirection": 301,
+        "is_day": 1,
+        "weathercode": 1
+      },
+      "timestamp": "2026-04-30T18:30:29.703930+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-04-30T19:00",
+        "interval": 900,
+        "temperature": 16.7,
+        "windspeed": 8.1,
+        "winddirection": 302,
+        "is_day": 1,
+        "weathercode": 0
+      },
+      "timestamp": "2026-04-30T19:00:27.728683+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-04-30T19:30",
+        "interval": 900,
+        "temperature": 17.3,
+        "windspeed": 10.2,
+        "winddirection": 312,
+        "is_day": 1,
+        "weathercode": 0
+      },
+      "timestamp": "2026-04-30T19:30:33.531004+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-04-30T20:00",
+        "interval": 900,
+        "temperature": 18.0,
+        "windspeed": 11.2,
+        "winddirection": 310,
+        "is_day": 1,
+        "weathercode": 0
+      },
+      "timestamp": "2026-04-30T20:00:31.955759+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-04-30T20:30",
+        "interval": 900,
+        "temperature": 18.3,
+        "windspeed": 12.3,
+        "winddirection": 310,
+        "is_day": 1,
+        "weathercode": 0
+      },
+      "timestamp": "2026-04-30T20:30:36.793774+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-04-30T21:00",
+        "interval": 900,
+        "temperature": 19.1,
+        "windspeed": 14.0,
+        "winddirection": 314,
+        "is_day": 1,
+        "weathercode": 0
+      },
+      "timestamp": "2026-04-30T21:00:29.768128+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-04-30T21:30",
+        "interval": 900,
+        "temperature": 20.1,
+        "windspeed": 14.3,
+        "winddirection": 313,
+        "is_day": 1,
+        "weathercode": 0
+      },
+      "timestamp": "2026-04-30T21:30:27.880220+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-04-30T22:00",
+        "interval": 900,
+        "temperature": 20.1,
+        "windspeed": 17.0,
+        "winddirection": 324,
+        "is_day": 1,
+        "weathercode": 0
+      },
+      "timestamp": "2026-04-30T22:00:26.898293+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-04-30T22:30",
+        "interval": 900,
+        "temperature": 19.4,
+        "windspeed": 19.1,
+        "winddirection": 328,
+        "is_day": 1,
+        "weathercode": 0
+      },
+      "timestamp": "2026-04-30T22:30:30.802425+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-04-30T23:00",
+        "interval": 900,
+        "temperature": 19.0,
+        "windspeed": 20.3,
+        "winddirection": 330,
+        "is_day": 1,
+        "weathercode": 0
+      },
+      "timestamp": "2026-04-30T23:00:31.112447+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-04-30T23:30",
+        "interval": 900,
+        "temperature": 18.7,
+        "windspeed": 20.3,
+        "winddirection": 330,
+        "is_day": 1,
+        "weathercode": 0
+      },
+      "timestamp": "2026-04-30T23:30:30.717699+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-05-01T00:00",
+        "interval": 900,
+        "temperature": 18.3,
+        "windspeed": 20.0,
+        "winddirection": 332,
+        "is_day": 1,
+        "weathercode": 0
+      },
+      "timestamp": "2026-05-01T00:00:31.412098+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-05-01T00:30",
+        "interval": 900,
+        "temperature": 17.7,
+        "windspeed": 19.3,
+        "winddirection": 333,
+        "is_day": 1,
+        "weathercode": 0
+      },
+      "timestamp": "2026-05-01T00:30:30.897333+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-05-01T01:00",
+        "interval": 900,
+        "temperature": 17.0,
+        "windspeed": 17.9,
+        "winddirection": 335,
+        "is_day": 1,
+        "weathercode": 0
+      },
+      "timestamp": "2026-05-01T01:00:31.030807+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-05-01T01:30",
+        "interval": 900,
+        "temperature": 16.3,
+        "windspeed": 17.7,
+        "winddirection": 340,
+        "is_day": 1,
+        "weathercode": 0
+      },
+      "timestamp": "2026-05-01T01:30:24.718575+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-05-01T02:00",
+        "interval": 900,
+        "temperature": 15.5,
+        "windspeed": 15.9,
+        "winddirection": 342,
+        "is_day": 1,
+        "weathercode": 0
+      },
+      "timestamp": "2026-05-01T02:00:25.447550+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-05-01T02:30",
+        "interval": 900,
+        "temperature": 14.1,
+        "windspeed": 15.6,
+        "winddirection": 341,
+        "is_day": 1,
+        "weathercode": 0
+      },
+      "timestamp": "2026-05-01T02:30:30.491221+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-05-01T03:00",
+        "interval": 900,
+        "temperature": 13.2,
+        "windspeed": 12.9,
+        "winddirection": 347,
+        "is_day": 0,
+        "weathercode": 0
+      },
+      "timestamp": "2026-05-01T03:00:30.897195+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-05-01T03:30",
+        "interval": 900,
+        "temperature": 12.5,
+        "windspeed": 11.7,
+        "winddirection": 351,
+        "is_day": 0,
+        "weathercode": 0
+      },
+      "timestamp": "2026-05-01T03:30:25.047809+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-05-01T04:00",
+        "interval": 900,
+        "temperature": 12.3,
+        "windspeed": 9.7,
+        "winddirection": 356,
+        "is_day": 0,
+        "weathercode": 0
+      },
+      "timestamp": "2026-05-01T04:00:30.153006+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-05-01T04:30",
+        "interval": 900,
+        "temperature": 12.1,
+        "windspeed": 8.7,
+        "winddirection": 353,
+        "is_day": 0,
+        "weathercode": 1
+      },
+      "timestamp": "2026-05-01T04:30:27.264614+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-05-01T05:00",
+        "interval": 900,
+        "temperature": 12.1,
+        "windspeed": 8.6,
+        "winddirection": 358,
+        "is_day": 0,
+        "weathercode": 1
+      },
+      "timestamp": "2026-05-01T05:00:29.572354+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-05-01T05:30",
+        "interval": 900,
+        "temperature": 12.0,
+        "windspeed": 9.1,
+        "winddirection": 353,
+        "is_day": 0,
+        "weathercode": 1
+      },
+      "timestamp": "2026-05-01T05:30:29.762114+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-05-01T06:00",
+        "interval": 900,
+        "temperature": 12.0,
+        "windspeed": 10.7,
+        "winddirection": 348,
+        "is_day": 0,
+        "weathercode": 2
+      },
+      "timestamp": "2026-05-01T06:00:30.842565+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-05-01T06:30",
+        "interval": 900,
+        "temperature": 11.9,
+        "windspeed": 9.3,
+        "winddirection": 347,
+        "is_day": 0,
+        "weathercode": 2
+      },
+      "timestamp": "2026-05-01T06:30:34.592331+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-05-01T07:00",
+        "interval": 900,
+        "temperature": 12.0,
+        "windspeed": 7.3,
+        "winddirection": 349,
+        "is_day": 0,
+        "weathercode": 2
+      },
+      "timestamp": "2026-05-01T07:00:35.983428+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-05-01T07:30",
+        "interval": 900,
+        "temperature": 11.4,
+        "windspeed": 6.8,
+        "winddirection": 357,
+        "is_day": 0,
+        "weathercode": 2
+      },
+      "timestamp": "2026-05-01T07:30:32.890795+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-05-01T08:00",
+        "interval": 900,
+        "temperature": 11.3,
+        "windspeed": 6.3,
+        "winddirection": 13,
+        "is_day": 0,
+        "weathercode": 1
+      },
+      "timestamp": "2026-05-01T08:00:31.674342+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-05-01T08:30",
+        "interval": 900,
+        "temperature": 11.8,
+        "windspeed": 6.6,
+        "winddirection": 347,
+        "is_day": 0,
+        "weathercode": 1
+      },
+      "timestamp": "2026-05-01T08:30:27.112403+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-05-01T09:00",
+        "interval": 900,
+        "temperature": 12.1,
+        "windspeed": 5.5,
+        "winddirection": 337,
+        "is_day": 0,
+        "weathercode": 2
+      },
+      "timestamp": "2026-05-01T09:00:31.239186+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-05-01T09:30",
+        "interval": 900,
+        "temperature": 12.0,
+        "windspeed": 4.7,
+        "winddirection": 356,
+        "is_day": 0,
+        "weathercode": 1
+      },
+      "timestamp": "2026-05-01T09:30:35.432998+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-05-01T10:00",
+        "interval": 900,
+        "temperature": 11.6,
+        "windspeed": 5.9,
+        "winddirection": 346,
+        "is_day": 0,
+        "weathercode": 2
+      },
+      "timestamp": "2026-05-01T10:00:30.776130+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-05-01T10:30",
+        "interval": 900,
+        "temperature": 11.9,
+        "windspeed": 4.8,
+        "winddirection": 347,
+        "is_day": 0,
+        "weathercode": 2
+      },
+      "timestamp": "2026-05-01T10:30:27.258780+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-05-01T11:00",
+        "interval": 900,
+        "temperature": 11.4,
+        "windspeed": 3.5,
+        "winddirection": 336,
+        "is_day": 0,
+        "weathercode": 1
+      },
+      "timestamp": "2026-05-01T11:00:28.764673+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-05-01T11:30",
+        "interval": 900,
+        "temperature": 12.1,
+        "windspeed": 2.4,
+        "winddirection": 27,
+        "is_day": 0,
+        "weathercode": 3
+      },
+      "timestamp": "2026-05-01T11:30:26.679975+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-05-01T12:00",
+        "interval": 900,
+        "temperature": 12.1,
+        "windspeed": 1.1,
+        "winddirection": 108,
+        "is_day": 0,
+        "weathercode": 3
+      },
+      "timestamp": "2026-05-01T12:00:28.403189+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-05-01T12:30",
+        "interval": 900,
+        "temperature": 12.0,
+        "windspeed": 2.0,
+        "winddirection": 135,
+        "is_day": 0,
+        "weathercode": 3
+      },
+      "timestamp": "2026-05-01T12:30:25.286647+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-05-01T13:00",
+        "interval": 900,
+        "temperature": 12.4,
+        "windspeed": 1.5,
+        "winddirection": 45,
+        "is_day": 0,
+        "weathercode": 3
+      },
+      "timestamp": "2026-05-01T13:00:34.565796+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-05-01T13:30",
+        "interval": 900,
+        "temperature": 11.9,
+        "windspeed": 1.1,
+        "winddirection": 252,
+        "is_day": 1,
+        "weathercode": 3
+      },
+      "timestamp": "2026-05-01T13:30:33.375043+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-05-01T14:00",
+        "interval": 900,
+        "temperature": 12.0,
+        "windspeed": 1.5,
+        "winddirection": 135,
+        "is_day": 1,
+        "weathercode": 3
+      },
+      "timestamp": "2026-05-01T14:00:27.194231+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-05-01T14:30",
+        "interval": 900,
+        "temperature": 12.0,
+        "windspeed": 2.1,
+        "winddirection": 149,
+        "is_day": 1,
+        "weathercode": 3
+      },
+      "timestamp": "2026-05-01T14:30:26.756607+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-05-01T15:00",
+        "interval": 900,
+        "temperature": 12.2,
+        "windspeed": 1.1,
+        "winddirection": 198,
+        "is_day": 1,
+        "weathercode": 3
+      },
+      "timestamp": "2026-05-01T15:00:28.171745+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-05-01T15:30",
+        "interval": 900,
+        "temperature": 12.6,
+        "windspeed": 1.5,
+        "winddirection": 194,
+        "is_day": 1,
+        "weathercode": 3
+      },
+      "timestamp": "2026-05-01T15:30:29.644936+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-05-01T16:00",
+        "interval": 900,
+        "temperature": 13.1,
+        "windspeed": 1.8,
+        "winddirection": 191,
+        "is_day": 1,
+        "weathercode": 3
+      },
+      "timestamp": "2026-05-01T16:00:34.582104+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-05-01T16:30",
+        "interval": 900,
+        "temperature": 13.4,
+        "windspeed": 4.4,
+        "winddirection": 261,
+        "is_day": 1,
+        "weathercode": 3
+      },
+      "timestamp": "2026-05-01T16:30:28.785293+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-05-01T17:00",
+        "interval": 900,
+        "temperature": 14.0,
+        "windspeed": 4.5,
+        "winddirection": 284,
+        "is_day": 1,
+        "weathercode": 3
+      },
+      "timestamp": "2026-05-01T17:00:29.062349+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-05-01T17:30",
+        "interval": 900,
+        "temperature": 13.4,
+        "windspeed": 6.4,
+        "winddirection": 313,
+        "is_day": 1,
+        "weathercode": 3
+      },
+      "timestamp": "2026-05-01T17:30:30.718524+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-05-01T18:00",
+        "interval": 900,
+        "temperature": 14.1,
+        "windspeed": 6.8,
+        "winddirection": 328,
+        "is_day": 1,
+        "weathercode": 3
+      },
+      "timestamp": "2026-05-01T18:00:29.053763+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-05-01T18:30",
+        "interval": 900,
+        "temperature": 14.3,
+        "windspeed": 8.6,
+        "winddirection": 327,
+        "is_day": 1,
+        "weathercode": 3
+      },
+      "timestamp": "2026-05-01T18:30:29.746162+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-05-01T19:00",
+        "interval": 900,
+        "temperature": 15.2,
+        "windspeed": 8.4,
+        "winddirection": 329,
+        "is_day": 1,
+        "weathercode": 3
+      },
+      "timestamp": "2026-05-01T19:00:34.666659+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-05-01T19:30",
+        "interval": 900,
+        "temperature": 16.3,
+        "windspeed": 10.4,
+        "winddirection": 316,
+        "is_day": 1,
+        "weathercode": 3
+      },
+      "timestamp": "2026-05-01T19:30:25.603725+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-05-01T20:00",
+        "interval": 900,
+        "temperature": 17.3,
+        "windspeed": 11.0,
+        "winddirection": 319,
+        "is_day": 1,
+        "weathercode": 3
+      },
+      "timestamp": "2026-05-01T20:00:37.708148+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-05-01T20:30",
+        "interval": 900,
+        "temperature": 18.3,
+        "windspeed": 11.3,
+        "winddirection": 323,
+        "is_day": 1,
+        "weathercode": 3
+      },
+      "timestamp": "2026-05-01T20:30:32.533631+00:00"
     },
     {
       "data": {
@@ -7070,7 +8276,7 @@
       "timestamp": "2026-05-01T23:01:18.914274+00:00"
     }
   ],
-  "max_temperature": 21.2,
+  "max_temperature": 21.6,
   "min_temperature": 8.2,
   "location": {
     "lat": 37.5,
