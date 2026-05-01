@@ -3,6 +3,7 @@ import { Chart } from 'chart.js';
 import { useCardHover } from '../hooks/useCardHover.js';
 import { useLucide } from '../hooks/useLucide.js';
 import { fmtTime } from '../utils/format.js';
+import { API_BASE } from '../config.js';
 
 export default function ComparePanel({ currentModel, anchorIso, setAnchorIso }) {
   const cardRef = useRef(null);
@@ -20,8 +21,8 @@ export default function ComparePanel({ currentModel, anchorIso, setAnchorIso }) 
     (async () => {
       try {
         const [rangeRes, histRes] = await Promise.all([
-          fetch('/api/range'),
-          fetch('/api/history?step=3'),
+          fetch(`${API_BASE}/api/range`),
+          fetch(`${API_BASE}/api/history?step=3`),
         ]);
         if (!rangeRes.ok || !histRes.ok) return;
         const r = await rangeRes.json();
@@ -159,7 +160,7 @@ export default function ComparePanel({ currentModel, anchorIso, setAnchorIso }) 
     setMetricsHtml('predicting…');
     (async () => {
       try {
-        const url = `/api/predict?datetime=${encodeURIComponent(anchorIso)}` + (currentModel ? `&model=${currentModel}` : '');
+        const url = `${API_BASE}/api/predict?datetime=${encodeURIComponent(anchorIso)}` + (currentModel ? `&model=${currentModel}` : '');
         const res = await fetch(url);
         const data = await res.json();
         if (cancelled) return;

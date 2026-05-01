@@ -1,0 +1,12 @@
+.git
+.github
+.claude
+web
+ml/__pycache__
+ml/history.parquet
+ml/*.png
+outputs/archives
+outputs/image.png
+outputs/forecast.json
+*.md
+.env*

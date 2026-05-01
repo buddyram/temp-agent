@@ -12,6 +12,7 @@ import ShowdownPanel from './components/ShowdownPanel.jsx';
 import Slideshow from './components/Slideshow.jsx';
 import { useWeather } from './hooks/useWeather.js';
 import { useLucide } from './hooks/useLucide.js';
+import { API_BASE } from './config.js';
 
 export default function App() {
   const { state, forecast, openMeteo, status, error, setForecast } = useWeather();
@@ -26,7 +27,7 @@ export default function App() {
     let cancelled = false;
     (async () => {
       try {
-        const r = await fetch('/api/models');
+        const r = await fetch(`${API_BASE}/api/models`);
         if (!r.ok) throw new Error();
         const m = await r.json();
         if (cancelled) return;
@@ -36,7 +37,7 @@ export default function App() {
     })();
     (async () => {
       try {
-        const r = await fetch('/api/range');
+        const r = await fetch(`${API_BASE}/api/range`);
         if (!r.ok) return;
         const j = await r.json();
         if (!cancelled) setRange(j);
@@ -51,7 +52,7 @@ export default function App() {
     if (!state || !state.history || !state.history.length) return;
     try {
       const lastT = state.history[state.history.length - 1].timestamp;
-      const r = await fetch(`/api/predict?datetime=${encodeURIComponent(lastT)}&model=${name}`);
+      const r = await fetch(`${API_BASE}/api/predict?datetime=${encodeURIComponent(lastT)}&model=${name}`);
       if (!r.ok) return;
       const d = await r.json();
       if (!d.error && d.predicted) {

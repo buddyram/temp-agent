@@ -4,6 +4,7 @@ import { useCardHover } from '../hooks/useCardHover.js';
 import { useLucide } from '../hooks/useLucide.js';
 import { fmtTime } from '../utils/format.js';
 import { MODEL_COLORS } from '../utils/models.js';
+import { API_BASE } from '../config.js';
 
 export default function ShowdownPanel({ models, currentModel, onModelChange, range }) {
   const cardRef = useRef(null);
@@ -78,7 +79,7 @@ export default function ShowdownPanel({ models, currentModel, onModelChange, ran
     setAnchorHtml('predicting…');
     (async () => {
       try {
-        const res = await fetch(`/api/predict_all?datetime=${encodeURIComponent(anchorIso)}`);
+        const res = await fetch(`${API_BASE}/api/predict_all?datetime=${encodeURIComponent(anchorIso)}`);
         const data = await res.json();
         if (cancelled) return;
         if (data.error) { setAnchorHtml(`error: ${data.error}`); return; }

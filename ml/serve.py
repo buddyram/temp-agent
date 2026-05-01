@@ -6,6 +6,7 @@ Run from repo root:
 Then open http://localhost:8000
 """
 import json
+import os
 import sys
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -13,6 +14,7 @@ from urllib.parse import parse_qs, urlparse
 
 import numpy as np
 import pandas as pd
+import requests
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from features import (  # noqa: E402
@@ -26,12 +28,16 @@ from windows import INPUT_LEN, OUTPUT_LEN  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
 LIVE_JSON = ROOT / "outputs" / "weather.json"
-PORT = 8000
+PORT = int(os.environ.get("PORT", "8000"))
+WEATHER_URL = os.environ.get("WEATHER_URL")  # if set, fetch weather.json from this URL
 
 
 def load_live_hourly_raw() -> pd.DataFrame:
-    """Read outputs/weather.json into a raw hourly DataFrame (no fill yet)."""
-    state = json.loads(LIVE_JSON.read_text())
+    """Read weather.json (URL or local file) into a raw hourly DataFrame."""
+    if WEATHER_URL:
+        state = requests.get(WEATHER_URL, timeout=10).json()
+    else:
+        state = json.loads(LIVE_JSON.read_text())
     rows = []
     for e in state["history"]:
         d = e["data"]
@@ -310,6 +316,15 @@ class Handler(SimpleHTTPRequestHandler):
             ],
         })
 
+    def end_headers(self):
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.send_header("Access-Control-Allow-Methods", "GET, OPTIONS")
+        super().end_headers()
+
+    def do_OPTIONS(self):
+        self.send_response(204)
+        self.end_headers()
+
     def json(self, payload, status=200):
         body = json.dumps(payload).encode()
         self.send_response(status)
@@ -326,8 +341,8 @@ class Handler(SimpleHTTPRequestHandler):
 
 
 if __name__ == "__main__":
-    server = ThreadingHTTPServer(("127.0.0.1", PORT), Handler)
-    print(f"serving on http://localhost:{PORT}")
+    server = ThreadingHTTPServer(("0.0.0.0", PORT), Handler)
+    print(f"serving on http://0.0.0.0:{PORT}")
     try:
         server.serve_forever()
     except KeyboardInterrupt:

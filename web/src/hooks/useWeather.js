@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
+import { OUTPUTS_BASE } from '../config.js';
 
 async function fetchOpenMeteo(loc) {
   if (!loc || typeof loc.lat !== 'number' || typeof loc.lon !== 'number') return null;
@@ -26,8 +27,8 @@ export function useWeather() {
   const load = useCallback(async () => {
     try {
       const [stateRes, fcstRes] = await Promise.all([
-        fetch(`outputs/weather.json?t=${Date.now()}`),
-        fetch(`outputs/forecast.json?t=${Date.now()}`).catch(() => null),
+        fetch(`${OUTPUTS_BASE}/weather.json?t=${Date.now()}`),
+        fetch(`${OUTPUTS_BASE}/forecast.json?t=${Date.now()}`).catch(() => null),
       ]);
       if (!stateRes.ok) throw new Error(`HTTP ${stateRes.status}`);
       const s = await stateRes.json();
