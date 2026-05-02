@@ -199,14 +199,11 @@ def main():
     if os.environ.get("FORCE") == "1":
         tick(state, url)
     else:
-        start = datetime.fromisoformat(state["start_time"])
-        k = len(state["history"])
-        while True:
-            target = start + timedelta(seconds=k * INTERVAL)
-            if target > datetime.now(timezone.utc):
-                break
+        last_ts = None
+        if state["history"]:
+            last_ts = datetime.fromisoformat(state["history"][-1]["timestamp"])
+        if last_ts is None or (datetime.now(timezone.utc) - last_ts).total_seconds() >= INTERVAL:
             tick(state, url)
-            k += 1
 
     plot(state)
 
