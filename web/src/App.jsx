@@ -138,6 +138,7 @@ export default function App() {
         <footer>
           Data: <a href="https://open-meteo.com" target="_blank" rel="noopener">Open-Meteo</a> ·
           Source: <a href="https://github.com/buddyram/temp-agent" target="_blank" rel="noopener">github.com/buddyram/temp-agent</a>
+          <div className="made-by">made by <a href="https://www.buddyram.com" target="_blank" rel="noopener">Ram Stewart</a></div>
         </footer>
       </div>
     </>
