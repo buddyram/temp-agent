@@ -20,30 +20,38 @@ export default function App() {
   const [currentModel, setCurrentModel] = useState('lstm');
   const [range, setRange] = useState(null);
   const [anchorIso, setAnchorIso] = useState(null);
-  useLucide([state, currentModel, models]);
+  const [backendWarming, setBackendWarming] = useState(false);
+  useLucide([state, currentModel, models, backendWarming]);
 
-  // initial fetch of /api/models — if it fails, serve.py isn't running
+  // Fetch /api/models and /api/range with 10s retry — Cloud Run cold-starts
+  // on free tier, so the first request after idle can hang or timeout.
   useEffect(() => {
     let cancelled = false;
-    (async () => {
+    let timer = null;
+    let attempts = 0;
+    async function tryOnce() {
+      attempts++;
       try {
-        const r = await fetch(`${API_BASE}/api/models`);
-        if (!r.ok) throw new Error();
-        const m = await r.json();
+        const [mr, rr] = await Promise.all([
+          fetch(`${API_BASE}/api/models`),
+          fetch(`${API_BASE}/api/range`),
+        ]);
+        if (!mr.ok || !rr.ok) throw new Error('bad status');
+        const m = await mr.json();
+        const j = await rr.json();
         if (cancelled) return;
         setModels(m.models || []);
         setCurrentModel(m.default || 'lstm');
-      } catch {}
-    })();
-    (async () => {
-      try {
-        const r = await fetch(`${API_BASE}/api/range`);
-        if (!r.ok) return;
-        const j = await r.json();
-        if (!cancelled) setRange(j);
-      } catch {}
-    })();
-    return () => { cancelled = true; };
+        setRange(j);
+        setBackendWarming(false);
+      } catch {
+        if (cancelled) return;
+        if (attempts === 1) setBackendWarming(true);
+        timer = setTimeout(tryOnce, 10000);
+      }
+    }
+    tryOnce();
+    return () => { cancelled = true; if (timer) clearTimeout(timer); };
   }, []);
 
   // when model changes, re-fetch forecast against new model (if serve.py is running)
@@ -79,6 +87,11 @@ export default function App() {
       <CursorLight />
       <div className="wrap">
         <Header status={status} models={models} currentModel={currentModel} onModelChange={onModelChange} />
+        {backendWarming && (
+          <div className="warming-banner">
+            <span className="warming-spinner" /> warming up backend… <span className="warming-sub">(cold-start can take a few seconds)</span>
+          </div>
+        )}
         {error ? (
           <div className="err">Failed to load <code>outputs/weather.json</code>: {error}</div>
         ) : !state ? (
