@@ -15,7 +15,7 @@ import requests
 OUT = "outputs/weather.json"
 PLOT = "outputs/image.png"
 ENV_FILE = ".env.local"
-INTERVAL = 1800
+INTERVAL = 1500
 
 
 def load_env(path=ENV_FILE):

@@ -18,7 +18,7 @@ export default function ChartCard({ history, maxC, minC, forecast, openMeteo, cu
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
-    const GAP_MS = 60 * 60 * 1000;
+    const GAP_MS = 2 * 60 * 60 * 1000;
     const raw = history.map(e => ({ x: new Date(e.timestamp), y: e.data.temperature }));
     const data = [];
     for (let i = 0; i < raw.length; i++) {
