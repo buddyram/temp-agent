@@ -12039,6 +12039,21 @@
         "cloud_cover": 58
       },
       "timestamp": "2026-05-08T18:31:21.018088+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-05-08T19:00",
+        "interval": 900,
+        "temperature": 14.6,
+        "windspeed": 13.3,
+        "winddirection": 322,
+        "weathercode": 1,
+        "is_day": 1,
+        "pressure": 1019.1,
+        "humidity": 83,
+        "cloud_cover": 49
+      },
+      "timestamp": "2026-05-08T19:01:32.807579+00:00"
     }
   ],
   "max_temperature": 21.6,
