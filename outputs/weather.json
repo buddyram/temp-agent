@@ -16314,6 +16314,21 @@
         "cloud_cover": 5
       },
       "timestamp": "2026-05-14T17:01:52.216755+00:00"
+    },
+    {
+      "data": {
+        "time": "2026-05-14T17:30",
+        "interval": 900,
+        "temperature": 17.7,
+        "windspeed": 5.5,
+        "winddirection": 281,
+        "weathercode": 0,
+        "is_day": 1,
+        "pressure": 1017.2,
+        "humidity": 73,
+        "cloud_cover": 3
+      },
+      "timestamp": "2026-05-14T17:31:53.082229+00:00"
     }
   ],
   "max_temperature": 24.8,
